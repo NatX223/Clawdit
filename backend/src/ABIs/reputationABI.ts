@@ -91,5 +91,73 @@ export const reputationRegistryABI = [
     "stateMutability": "view",
     "type": "function"
   },
-  
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "agentId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "clientAddresses",
+        "type": "address[]"
+      },
+      {
+        "internalType": "string",
+        "name": "tag1",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "tag2",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "includeRevoked",
+        "type": "bool"
+      }
+    ],
+    "name": "readAllFeedback",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "clients",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint64[]",
+        "name": "feedbackIndexes",
+        "type": "uint64[]"
+      },
+      {
+        "internalType": "int128[]",
+        "name": "values",
+        "type": "int128[]"
+      },
+      {
+        "internalType": "uint8[]",
+        "name": "valueDecimals",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "tag1s",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "tag2s",
+        "type": "string[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "revokedStatuses",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ]
