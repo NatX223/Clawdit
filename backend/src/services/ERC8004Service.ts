@@ -13,19 +13,44 @@ export async function getAgentRegistration(agentId: number) {
     try {
         const provider = new ethers.JsonRpcProvider(process.env.PROVIDER);
         const identityRegistry = new ethers.Contract(addresses.IDENTITY_REGISTRY, identityRegistryABI, provider);
-        const agentURI = await identityRegistry.tokenURI(agentId);
-        console.log(agentURI);
         
-        const base64Data = agentURI.startsWith('data:application/json;base64,') 
-        ? agentURI.split(',')[1] 
-        : agentURI;
-  
-        const decodedString = Buffer.from(base64Data, 'base64').toString('utf-8');
+        const agentURI = await identityRegistry.tokenURI(agentId);
+        console.log(`Fetched URI for Agent ${agentId}:`, agentURI);
+        
+        // 1. Handle Base64 Encoded JSON (On-Chain)
+        if (agentURI.startsWith('data:application/json;base64,')) {
+            const base64Data = agentURI.split(',')[1];
+            const decodedString = Buffer.from(base64Data, 'base64').toString('utf-8');
+            const parsedData = JSON.parse(decodedString) as AgentProfile;
+            
+            return parsedData;
+        } 
+        // 2. Handle IPFS URI (Off-Chain)
+        else if (agentURI.startsWith('ipfs://')) {
+            // Extract the CID and build the Pinata gateway URL
+            const cid = agentURI.replace('ipfs://', '');
+            const gatewayUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
+            
+            console.log(`Fetching profile from IPFS: ${gatewayUrl}`);
+            
+            // Fetch the JSON file from the gateway
+            const response = await fetch(gatewayUrl);
+            
+            if (!response.ok) {
+                throw new Error(`IPFS fetch failed with HTTP status: ${response.status}`);
+            }
+            
+            const parsedData = await response.json() as AgentProfile;
+            return parsedData;
+            
+        } 
+        // 3. Handle unknown formats
+        else {
+            throw new Error(`Unsupported URI format returned: ${agentURI}`);
+        }
 
-        const parsedData = JSON.parse(decodedString) as AgentProfile;
-        return parsedData;
     } catch (error) {
-        console.log(error);
+        console.error(`❌ Failed to fetch registration for agent ${agentId}:`, error);
     }
 }
 
@@ -119,14 +144,6 @@ export async function reputationReport(agentId: number) {
 
         if (!profile) throw new Error("Agent profile not found.");
 
-        // Fetch Liveliness data directly from the contract
-        const provider = new ethers.JsonRpcProvider(process.env.PROVIDER);
-        const identityRegistry = new ethers.Contract(addresses.IDENTITY_REGISTRY, identityRegistryABI, provider);
-        const coreAgentData = await identityRegistry.getAgent(agentId);
-        
-        const createdAt = Number(coreAgentData.createdAt);
-        const lastActivity = Number(coreAgentData.lastActivity);
-
         // ==========================================
         // METRIC 1: Reputation Density & Sybil Risk
         // ==========================================
@@ -192,9 +209,9 @@ export async function reputationReport(agentId: number) {
         let trustTier = "Tier 3: Reputation Only (Highest Risk)";
         
         if (trusts.some(t => t.includes("tee") || t.includes("enclave"))) {
-            trustTier = "Tier 1: TEE-Attestation (Lowest Risk)";
+            trustTier = "Tier 2: TEE-Attestation (Lowest Risk)";
         } else if (trusts.some(t => t.includes("crypto") || t.includes("stake"))) {
-            trustTier = "Tier 2: Cryptoeconomic (Medium Risk)";
+            trustTier = "Tier 1: Cryptoeconomic (Medium Risk)";
         }
 
         // ==========================================
@@ -227,7 +244,9 @@ export async function reputationReport(agentId: number) {
         };
 
         console.log("✅ Risk Analysis Complete:\n", JSON.stringify(riskReport, null, 2));
-        return riskReport;
+        // return riskReport;
+        console.log(riskReport);
+        
 
     } catch (error) {
         console.error(`❌ Failed to analyze agent ${agentId}:`, error);
