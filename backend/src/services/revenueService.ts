@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
 import dotenv from 'dotenv';
+import { getAgentWallet } from './ERC8004Service';
+import { RevenueReport } from '../types/revenueType';
 dotenv.config();
 
 // 1. Fixed the return type to match the API payload
@@ -39,91 +41,89 @@ export async function getTokenBalances(address: string) {
     }
 }
 
-export async function getAgentRevenueMetrics(address: string) {
-    console.log(`📊 Analyzing financial velocity for: ${address}...`);
+export async function getRevenueReport(agentId: number) {
+    try {
+        const address = await getAgentWallet(agentId);
+        console.log(`📊 Analyzing financial velocity for: ${address}...`);
+        
+        const transfers = await getTokenTransfers(address);
+        const lowerCaseAddress = address.toLowerCase();
     
-    const transfers = await getTokenTransfers(address);
-    const lowerCaseAddress = address.toLowerCase();
-
-    // Unique senders set (Customer Base)
-    const uniqueSenders = new Set<string>();
+        // Unique senders set (Customer Base)
+        const uniqueSenders = new Set<string>();
+        
+        // For frequency/MRR calculations
+        const inboundTransfers: { amount: number; timestamp: number }[] = [];
+        
+        let totalInboundRaw = 0;
+        let totalOutboundRaw = 0;
+        let inboundCount = 0;
+        let outboundCount = 0;
     
-    // For frequency/MRR calculations
-    const inboundTransfers: { amount: number; timestamp: number }[] = [];
+        for (const transfer of transfers) {
+            const amount = Number(transfer.amount);
+            const timestamp = Number(transfer.timestamp);
     
-    let totalInboundRaw = 0;
-    let totalOutboundRaw = 0;
-    let inboundCount = 0;
-    let outboundCount = 0;
-
-    for (const transfer of transfers) {
-        const amount = Number(transfer.amount);
-        const timestamp = Number(transfer.timestamp);
-
-        if (transfer.to.toLowerCase() === lowerCaseAddress) {
-            inboundCount++;
-            totalInboundRaw += amount;
-            uniqueSenders.add(transfer.from.toLowerCase());
-            inboundTransfers.push({ amount, timestamp });
-        } else if (transfer.from.toLowerCase() === lowerCaseAddress) {
-            outboundCount++;
-            totalOutboundRaw += amount;
+            if (transfer.to.toLowerCase() === lowerCaseAddress) {
+                inboundCount++;
+                totalInboundRaw += amount;
+                uniqueSenders.add(transfer.from.toLowerCase());
+                inboundTransfers.push({ amount, timestamp });
+            } else if (transfer.from.toLowerCase() === lowerCaseAddress) {
+                outboundCount++;
+                totalOutboundRaw += amount;
+            }
         }
-    }
-
-    // --- FREQUENCY & VELOCITY LOGIC ---
-    let avgDaysBetweenPayments = 0;
-    let estimatedMRR = 0.0;
-
-    if (inboundTransfers.length > 1) {
-        // Sort by timestamp (oldest first) to calculate gaps
-        const sorted = inboundTransfers.sort((a, b) => a.timestamp - b.timestamp);
-        
-        // 1. Calculate Average Frequency
-        const firstTx = sorted[0].timestamp;
-        const lastTx = sorted[sorted.length - 1].timestamp;
-        const totalDays = (lastTx - firstTx) / 86400;
-        avgDaysBetweenPayments = totalDays / (inboundCount - 1);
-
-        // 2. Estimate MRR (Monthly Recurring Revenue)
-        // We look at the last 30 days of revenue
-        const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 86400);
-        const recentRevenueRaw = inboundTransfers
-            .filter(t => t.timestamp >= thirtyDaysAgo)
-            .reduce((acc, curr) => acc + curr.amount, 0);
-        
-        estimatedMRR = recentRevenueRaw;
-    }
-
-    const metrics = {
-        walletAddress: address,
-        // The "Customer Base" metric
-        uniqueCustomers: uniqueSenders.size,
-        
-        inbound: {
-            count: inboundCount,
-            totalVolume: totalInboundRaw,
-            // How often the agent actually earns
-            paymentFrequencyDays: avgDaysBetweenPayments.toFixed(1),
-            // Current monthly velocity
-            estimatedMRR: estimatedMRR
-        },
-        
-        outbound: {
-            count: outboundCount,
-            totalVolume: totalOutboundRaw
-        },
-        
-        netCashFlow: totalInboundRaw - totalOutboundRaw,
-        
-        // A "Sustainability" score: High MRR + High Unique Customers = Solid Agent
-        sustainabilityIndex: uniqueSenders.size > 0 ? (Number(estimatedMRR) / uniqueSenders.size).toFixed(2) : "0"
-    };
-
-    console.log(`✅ Financial profile generated for ${address}`);
-    console.log(metrics);
     
-    // return metrics;
-}
+        // --- FREQUENCY & VELOCITY LOGIC ---
+        let avgDaysBetweenPayments = 0;
+        let estimatedMRR = 0.0;
+    
+        if (inboundTransfers.length > 1) {
+            // Sort by timestamp (oldest first) to calculate gaps
+            const sorted = inboundTransfers.sort((a, b) => a.timestamp - b.timestamp);
+            
+            // 1. Calculate Average Frequency
+            const firstTx = sorted[0].timestamp;
+            const lastTx = sorted[sorted.length - 1].timestamp;
+            const totalDays = (lastTx - firstTx) / 86400;
+            avgDaysBetweenPayments = totalDays / (inboundCount - 1);
+    
+            // 2. Estimate MRR (Monthly Recurring Revenue)
+            // We look at the last 30 days of revenue
+            const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 86400);
+            const recentRevenueRaw = inboundTransfers
+                .filter(t => t.timestamp >= thirtyDaysAgo)
+                .reduce((acc, curr) => acc + curr.amount, 0);
+            
+            estimatedMRR = recentRevenueRaw;
+        }
+    
+        const metrics = {
+            walletAddress: address,
+            // The "Customer Base" metric
+            uniqueCustomers: uniqueSenders.size,
+            
+            inbound: {
+                count: inboundCount,
+                totalVolume: totalInboundRaw,
+                // How often the agent actually earns
+                paymentFrequencyDays: Number(avgDaysBetweenPayments.toFixed(1)),
+                // Current monthly velocity
+                estimatedMRR: estimatedMRR
+            },
+            
+            outbound: {
+                count: outboundCount,
+                totalVolume: totalOutboundRaw
+            }
+        } as RevenueReport;
+    
+        console.log(`✅ Financial profile generated for ${address}`);
+        
+        return metrics;
+    } catch (error) {
+        console.error(`💥 Error generating revenue report for agent ${agentId}:`, error);
+    }
 
-getAgentRevenueMetrics("0x2c6d88F2DA5179B34850B0EC31f3e3b61cc90A53")
+}

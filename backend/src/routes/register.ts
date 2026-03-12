@@ -11,7 +11,7 @@ import { firebaseService } from '../services/firebaseService';
 
 dotenv.config();
 
-router.get('/register', async (req, res) => {
+router.post('/register', async (req, res) => {
     try {
         const seedPhrase = await getSeedPhrase();
         const config = getConfig();
@@ -29,7 +29,7 @@ router.get('/register', async (req, res) => {
         res.json({address, agentCode});
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'wallet creation failed' });
+        res.status(500).json({ error: 'wallet creation and registration failed' });
     }
 })
 

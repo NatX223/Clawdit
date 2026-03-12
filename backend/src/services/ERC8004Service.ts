@@ -6,6 +6,7 @@ import { ethers } from "ethers";
 import dotenv from 'dotenv';
 import { addresses } from "../constants/Addresses";
 import { agentTags } from "../constants/agentTags";
+import { ReputationReport } from "../types/reputationType";
 
 dotenv.config();
 
@@ -236,7 +237,7 @@ export async function getReputationReport(agentId: number) {
             name: profile.name,
             reputationDensity: {
                 totalFeedbacks,
-                averageScore: averageScore.toFixed(2),
+                averageScore: Number(averageScore.toFixed(2)),
                 uniqueClients: clients?.length || 0,
                 sybilRisk,
                 topClientConcentration: `${(topClientConcentration * 100).toFixed(1)}%`
@@ -255,11 +256,10 @@ export async function getReputationReport(agentId: number) {
                 declaredTrusts: profile.supportedTrust,
                 riskTier: trustTier
             }
-        };
+        } as ReputationReport;
 
         console.log("✅ Risk Analysis Complete:\n", JSON.stringify(riskReport, null, 2));
-        // return riskReport;
-        console.log(riskReport);
+        return riskReport;
         
 
     } catch (error) {
