@@ -44,6 +44,20 @@ export async function getAgentRegistration(agentId: number) {
             return parsedData;
             
         } 
+        else if (agentURI.startsWith('https://')) {            
+            console.log(`Fetching profile using HTTPS: ${agentURI}`);
+            
+            // Fetch the JSON file from the URL
+            const response = await fetch(agentURI);
+            
+            if (!response.ok) {
+                throw new Error(`IPFS fetch failed with HTTP status: ${response.status}`);
+            }
+            
+            const parsedData = await response.json() as AgentProfile;
+            return parsedData;
+            
+        } 
         // 3. Handle unknown formats
         else {
             throw new Error(`Unsupported URI format returned: ${agentURI}`);
@@ -131,7 +145,7 @@ export async function getAgentReputation(agentId: number) {
     }
 }
 
-export async function reputationReport(agentId: number) {
+export async function getReputationReport(agentId: number) {
     try {
         console.log(`🔍 Starting Risk Analysis for Agent ${agentId}...`);
 
