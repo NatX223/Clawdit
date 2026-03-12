@@ -1,4 +1,4 @@
-import WalletManagerEvmErc4337, { 
+import { 
     WalletAccountEvmErc4337 
 } from '@tetherto/wdk-wallet-evm-erc-4337';
 
@@ -7,10 +7,11 @@ const router = express.Router();
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import { derivePath, getConfig, getSeedPhrase } from '../services/walletService';
+import { firebaseService } from '../services/firebaseService';
 
 dotenv.config();
 
-router.get('/createwallet', async (req, res) => {
+router.get('/register', async (req, res) => {
     try {
         const seedPhrase = await getSeedPhrase();
         const config = getConfig();
@@ -23,7 +24,9 @@ router.get('/createwallet', async (req, res) => {
         const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
 
         const address = await account.getAddress();
-        res.json({ address, agentCode });
+        const details = { address: address }
+        await firebaseService.createDocument('agents', details, address)
+        res.json({address, agentCode});
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'wallet creation failed' });

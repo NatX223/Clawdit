@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import createWalletRoutes from './routes/createWallet';
+import registerRoute from './routes/register';
 
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -40,7 +40,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Register routes
-app.use('/', createWalletRoutes);
+app.use('/', registerRoute);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
