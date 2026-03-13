@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import registerRoute from './routes/register';
 import agentInfoRoute from './routes/agentInfo';
+import requestRoutes from './routes/request';
 
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -43,6 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 // Register routes
 app.use('/', registerRoute);
 app.use('/', agentInfoRoute);
+app.use('/', requestRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -60,6 +62,7 @@ app.get('/', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
 // 404 handler
 app.use('*', (req, res) => {
     res.status(404).json({
