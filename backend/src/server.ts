@@ -6,6 +6,7 @@ import agentInfoRoute from './routes/agentInfo.js';
 import requestRoutes from './routes/request.js';
 import walletRoutes from './routes/loan.js';
 import agentRoutes from './routes/agent.js';
+import loanRoutes from './routes/loan.js';
 
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -49,6 +50,8 @@ app.use('/', agentInfoRoute);
 app.use('/', requestRoutes);
 app.use('/', walletRoutes);
 app.use('/', agentRoutes);
+app.use('/', loanRoutes);
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {
