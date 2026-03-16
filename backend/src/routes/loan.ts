@@ -9,9 +9,10 @@ import { loanDetail } from '../types/loanDetailsType.js';
 
 router.post('/dispense', async (req, res) => {
     try {
-        const { agentId } = req.body;
+        const { agentId } = req.query;
 
-        const recipient = await getAgentWallet(agentId);
+        const recipient = await getAgentWallet(Number(agentId));
+
         const agentPasskey = req.headers['agent-passkey'] as string;
 
         const seedPhrase = await getSeedPhrase();
@@ -21,7 +22,7 @@ router.post('/dispense', async (req, res) => {
         const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
         const address = await account.getAddress();
 
-        const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', agentId);
+        const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
         await firebaseService.addToSubcollection<loanDetail>('agents', address, 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
         const sendAmount = loanRequest?.requestAmount;
 

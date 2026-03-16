@@ -9,9 +9,9 @@ router.post('/requestLoan', async (req, res) => {
     try {
         const { agentId, requestAmount, requestReason, repaymentPlan, loanDuration, interest } = req.body;
 
-        const requestAmount_ = Number(requestAmount) * Math.pow(10, 6);
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + loanDuration);
+        const requestAmount_ = Number(requestAmount) * Math.pow(10, 6);
 
         const loanRequest = {
             agentId: agentId,
@@ -42,7 +42,7 @@ router.get('/getRequests', async (req, res) => {
         const path = derivePath(agentPasskey);
         const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
 
-        const balance = account.getTokenBalance("0xd077a400968890eacc75cdc901f0356c943e4fdb");
+        const balance = await account.getTokenBalance("0xd077a400968890eacc75cdc901f0356c943e4fdb");
 
         const loanRequests = await firebaseService.getDocumentsPaginated(
             'loanRequests',
