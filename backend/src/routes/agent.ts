@@ -67,4 +67,39 @@ router.get('/getLoans/ended', async (req, res) => {
     }
 });
 
+router.get('/getLoans/summary', async (req, res) => {
+    try {
+        const agentPasskey = req.headers['agent-passkey'] as string;
+        const seedPhrase = await getSeedPhrase();
+        const config = getConfig();
+
+        const path = derivePath(agentPasskey);
+        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
+        const address = await account.getAddress();
+
+        const [ongoingLoans, endedLoans] = await Promise.all([
+            firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'ongoingLoans'),
+            firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'endedLoans')
+        ]);
+
+        const allLoans = [...ongoingLoans, ...endedLoans];
+
+        const totalLoanAmount = allLoans.reduce((sum, loan) => sum + (loan.requestAmount || 0), 0);
+        const totalLoansCount = allLoans.length;
+
+        res.json({
+            address,
+            totalLoanAmount,
+            totalLoansCount,
+            breakdown: {
+                ongoingCount: ongoingLoans.length,
+                endedCount: endedLoans.length
+            }
+        });
+    } catch (error) {
+        console.error("Summary Fetch Error:", error);
+        res.status(500).json({ error: 'Error fetching loan summary' });
+    }
+});
+
 export default router;
