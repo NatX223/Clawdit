@@ -1,4 +1,4 @@
-export interface loanRequest {
+export interface loanDetail {
     id: string;
     agentId: number;
     requestAmount: number;
@@ -7,4 +7,5 @@ export interface loanRequest {
     loanDuration: number;
     dueDate: Date;
     interest: number;
+    amountRemaining: number;
 }

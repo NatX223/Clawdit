@@ -7,15 +7,19 @@ import { CollectionReference } from 'firebase-admin/firestore';
 
 router.post('/requestLoan', async (req, res) => {
     try {
-        const { agentId, requestAmount, requestReason, repaymentPlan, interest } = req.body;
+        const { agentId, requestAmount, requestReason, repaymentPlan, loanDuration, interest } = req.body;
 
         const requestAmount_ = Number(requestAmount) * Math.pow(10, 6);
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + loanDuration);
 
         const loanRequest = {
             agentId: agentId,
             requestAmount: requestAmount_,
             requestReason: requestReason,
             repaymentPlan: repaymentPlan,
+            loanDuration: loanDuration,
+            dueDate: dueDate,
             interest: interest
         }
 
