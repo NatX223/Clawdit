@@ -24,9 +24,8 @@ router.get('/balance', async (req, res) => {
         res.json({ tokenBalnce });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Sending token failed' });  
+        res.status(500).json({ error: 'Fetching balance failed' });  
     }
-
 });
 
 router.get('/getLoans/ongoing', async (req, res) => {
