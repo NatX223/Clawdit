@@ -1,51 +1,55 @@
 import express from 'express';
 const router = express.Router();
 import { firebaseService } from '../services/firebaseService';
+import { derivePath, getConfig, getSeedPhrase } from '../services/walletService';
+import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337/types';
+import { CollectionReference } from 'firebase-admin/firestore';
 
-router.post('/requestLoan/uncollaterized', async (req, res) => {
+router.post('/requestLoan', async (req, res) => {
     try {
         const { agentId, requestAmount, requestReason, repaymentPlan, interest } = req.body;
 
+        const requestAmount_ = Number(requestAmount) * Math.pow(10, 6);
+
         const loanRequest = {
             agentId: agentId,
-            requestAmount: requestAmount,
+            requestAmount: requestAmount_,
             requestReason: requestReason,
             repaymentPlan: repaymentPlan,
             interest: interest
         }
 
-        await firebaseService.createDocument('loanRequests', loanRequest);
-    
+        await firebaseService.createDocument('loanRequests', loanRequest, agentId);
+
         res.send(201).json({ message: 'Loan request created successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'sending loan request failed' });  
+        res.status(500).json({ error: 'sending loan request failed' });
     }
 
 });
 
-router.post('/requestLoan/collaterized', async (req, res) => {
+router.get('/getRequests', async (req, res) => {
     try {
-        const { address, requestAmount, requestReason, repaymentPlan, interest, collateralToken, collateralAmount } = req.body;
+        const agentPasskey = req.headers['agent-passkey'] as string;
+        const seedPhrase = await getSeedPhrase();
+        const config = getConfig();
 
-        const loanRequest = {
-            borrowerAddress: address,
-            requestAmount: requestAmount,
-            collateralToken: collateralToken,
-            collateralAmount: collateralAmount,
-            requestReason: requestReason,
-            repaymentPlan: repaymentPlan,
-            interest: interest
-        }
+        const path = derivePath(agentPasskey);
+        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
 
-        await firebaseService.createDocument('loanRequests', loanRequest);
-    
-        res.send(201).json({ message: 'Loan request created successfully' });
+        const balance = account.getTokenBalance("0xd077a400968890eacc75cdc901f0356c943e4fdb");
+
+        const loanRequests = await firebaseService.getDocumentsPaginated(
+            'loanRequests',
+            10,
+            (ref: CollectionReference) => ref.where('type', '==', 'uncollaterized').where('requestAmount', '<', balance)
+        );
+        res.json(loanRequests.documents);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'sending loan request failed' });  
+        res.status(500).json({ error: 'Fetching loan requests failed' });
     }
-
 });
 
 export default router;

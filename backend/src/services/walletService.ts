@@ -20,8 +20,8 @@ export async function getSeedPhrase() {
   }
 }
 
-export function derivePath(agentPassword: string): string {
-  const hash = crypto.createHash('sha256').update(agentPassword).digest('hex');
+export function derivePath(agentPasskey: string): string {
+  const hash = crypto.createHash('sha256').update(agentPasskey).digest('hex');
   
   const hexSegment = hash.substring(0, 8);
   const index = parseInt(hexSegment, 16) & 0x7FFFFFFF; 
@@ -43,4 +43,4 @@ export function getConfig() {
       },
       transferMaxFee: 500000
   }
-} 
+}

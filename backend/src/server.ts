@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import registerRoute from './routes/register';
 import agentInfoRoute from './routes/agentInfo';
 import requestRoutes from './routes/request';
+import walletRoutes from './routes/loan';
 
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -45,6 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/', registerRoute);
 app.use('/', agentInfoRoute);
 app.use('/', requestRoutes);
+app.use('/', walletRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
