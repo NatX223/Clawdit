@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
 import dotenv from 'dotenv';
-import { getAgentWallet } from './ERC8004Service';
-import { RevenueReport } from '../types/revenueType';
+import { getAgentWallet } from './ERC8004Service.js';
+import { RevenueReport } from '../types/revenueType.js';
 dotenv.config();
 
 // 1. Fixed the return type to match the API payload

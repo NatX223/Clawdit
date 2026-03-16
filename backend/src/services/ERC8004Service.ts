@@ -1,12 +1,11 @@
-import { identityRegistryABI } from "../ABIs/identityABI";
-import { reputationRegistryABI } from "../ABIs/reputationABI";
-import { AgentProfile } from "../types/registrationTypes";
+import { identityRegistryABI } from "../ABIs/identityABI.js";
+import { reputationRegistryABI } from "../ABIs/reputationABI.js";
+import { AgentProfile } from "../types/registrationTypes.js";
 
 import { ethers } from "ethers";
 import dotenv from 'dotenv';
-import { addresses } from "../constants/Addresses";
-import { agentTags } from "../constants/agentTags";
-import { ReputationReport } from "../types/reputationType";
+import { addresses } from "../constants/Addresses.js";
+import { ReputationReport } from "../types/reputationType.js";
 
 dotenv.config();
 
