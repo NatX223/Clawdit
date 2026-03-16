@@ -6,8 +6,8 @@ import express from 'express';
 const router = express.Router();
 import dotenv from 'dotenv';
 import crypto from 'crypto';
-import { derivePath, getConfig, getSeedPhrase } from '../services/walletService';
-import { firebaseService } from '../services/firebaseService';
+import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.js';
+import { firebaseService } from '../services/firebaseService.js';
 
 dotenv.config();
 

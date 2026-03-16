@@ -1,8 +1,8 @@
 import express from 'express';
 const router = express.Router();
 import dotenv from 'dotenv';
-import { getAgentRegistration, getReputationReport } from '../services/ERC8004Service';
-import { getRevenueReport } from '../services/revenueService';
+import { getAgentRegistration, getReputationReport } from '../services/ERC8004Service.js';
+import { getRevenueReport } from '../services/revenueService.js';
 
 dotenv.config();
 

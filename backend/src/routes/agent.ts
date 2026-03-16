@@ -1,10 +1,10 @@
 import express from 'express';
 const router = express.Router();
-import { firebaseService } from '../services/firebaseService';
-import { derivePath, getConfig, getSeedPhrase } from '../services/walletService';
+import { firebaseService } from '../services/firebaseService.js';
+import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.js';
 import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { formatUnits } from 'ethers';
-import { loanDetail } from '../types/loanDetailsType';
+import { loanDetail } from '../types/loanDetailsType.js';
 
 router.get('/balance', async (req, res) => {
     try {

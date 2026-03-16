@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import registerRoute from './routes/register';
-import agentInfoRoute from './routes/agentInfo';
-import requestRoutes from './routes/request';
-import walletRoutes from './routes/loan';
+import registerRoute from './routes/register.js';
+import agentInfoRoute from './routes/agentInfo.js';
+import requestRoutes from './routes/request.js';
+import walletRoutes from './routes/loan.js';
 
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
