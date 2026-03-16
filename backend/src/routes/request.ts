@@ -2,7 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { firebaseService } from '../services/firebaseService.js';
 import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.js';
-import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337/types';
+import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { CollectionReference } from 'firebase-admin/firestore';
 
 router.post('/requestLoan', async (req, res) => {
