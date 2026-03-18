@@ -6,6 +6,8 @@ import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { getAgentWallet } from '../services/ERC8004Service.js';
 import { loanRequest } from '../types/loanRequestType.js';
 import { loanDetail } from '../types/loanDetailsType.js';
+import { CollectionReference } from 'firebase-admin/firestore';
+import { ethers } from 'ethers';
 
 router.post('/dispense', async (req, res) => {
     try {
@@ -40,36 +42,56 @@ router.post('/dispense', async (req, res) => {
 
 });
 
-// router.post('/payback', async (req, res) => {
-//     try {
-//         const { agentId } = req.body;
+router.post('/collect', async (req, res) => {
+    try {
+        const { agentId } = req.query;
 
-//         const recipient = await getAgentWallet(agentId);
-//         const agentPasskey = req.headers['agent-passkey'] as string;
+        const borrowerAddress = await getAgentWallet(Number(agentId));
+        const agentPasskey = req.headers['agent-passkey'] as string;
 
-//         const seedPhrase = await getSeedPhrase();
-//         const config = getConfig();
+        const seedPhrase = await getSeedPhrase();
+        const config = getConfig();
 
-//         const path = derivePath(agentPasskey);
-//         const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
-//         const address = await account.getAddress();
+        const path = derivePath(agentPasskey);
+        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
+        const address = await account.getAddress();
 
-//         const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', agentId);
-//         await firebaseService.addToSubcollection<loanDetail>('agents', address, 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
-//         const sendAmount = loanRequest?.requestAmount;
+        const loan = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'ongoingLoans', (ref: CollectionReference) => ref.where('agentId', '==', agentId));
+        const repaymentAmount = loan[0].requestAmount;
 
-//         await account.transfer({
-//             token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
-//             recipient: recipient,
-//             amount: sendAmount!
-//         });
-    
-//         res.send(201).json({ message: 'Token sent successfully' });
-//     } catch (error) {
-//         console.log(error);
-//         res.status(500).json({ error: 'Sending token failed' });  
-//     }
+        const erc20Abi = [
+            "function transferFrom(address from, address to, uint256 amount)"
+        ];
 
-// });
+        const iface = new ethers.Interface(erc20Abi);
+
+        const transferData = iface.encodeFunctionData("transferFrom", [
+            borrowerAddress,
+            address,
+            BigInt(repaymentAmount)
+        ]);
+
+        const result = await account.sendTransaction({
+            to: "0xd077a400968890eacc75cdc901f0356c943e4fdb", // USDT
+            value: 0n,
+            data: transferData
+        });
+
+        const receipt = await account.getTransactionReceipt(result.hash);
+
+        if (!receipt) {
+            res.status(422).json({ error: 'Collecting payment failed, approval not enough or balance not enough'});
+        }
+
+        await firebaseService.deleteSubcollectionDocument('agents', address, 'ongoingLoans', loan[0].id);
+        await firebaseService.addToSubcollection('agents', address, 'endedLoans', {...loan, amountRemaining: 0});
+
+        res.send(201).json({ message: 'Loan repaid successfully' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Sending token failed' });  
+    }
+
+});
 
 export default router;
