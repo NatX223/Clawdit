@@ -5,8 +5,9 @@ import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.
 import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { formatUnits } from 'ethers';
 import { loanDetail } from '../types/loanDetailsType.js';
-import { getAgentWallet } from '../services/ERC8004Service.js';
+import { getAgentWallet, getFeedbackData } from '../services/ERC8004Service.js';
 import { getLoanRepayment } from '../services/revenueService.js';
+import { CollectionReference } from 'firebase-admin/firestore';
 
 router.get('/balance', async (req, res) => {
     try {
@@ -59,7 +60,8 @@ router.get('/getLoans/default', async (req, res) => {
         const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
         const address = await account.getAddress(); // This is the Lender's address
 
-        const ongoingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'ongoingLoans');
+        const now = new Date();
+        const ongoingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'ongoingLoans', (ref: CollectionReference) => ref.where('dueDate', '<', now));
 
         // Fetch all borrower addresses in parallel
         const agentIds = ongoingLoans.map(loan => loan.agentId);
@@ -76,18 +78,15 @@ router.get('/getLoans/default', async (req, res) => {
             if (!borrowerData) return loan;
 
             const borrowerAddress = borrowerData.address;
+            const agentId = borrowerData.agentId;
 
-            // 1. Get total repayment from the blockchain
             const totalRepayment = await getLoanRepayment(borrowerAddress, address);
 
-            // 2. Calculate remaining amount
             const remainingAmount = loan.requestAmount - totalRepayment;
 
-            // 3. Settlement Logic
             if (remainingAmount <= 0) {
                 const completedLoan = { ...loan, amountRemaining: 0 };
 
-                // Add to endedLoans subcollection
                 await firebaseService.addToSubcollection(
                     'agents', 
                     address, 
@@ -95,7 +94,6 @@ router.get('/getLoans/default', async (req, res) => {
                     completedLoan
                 );
 
-                // Delete from ongoingLoans subcollection
                 await firebaseService.deleteSubcollectionDocument(
                     'agents', 
                     address, 
@@ -103,10 +101,16 @@ router.get('/getLoans/default', async (req, res) => {
                     loan.id
                 );
 
+                const feedbackData = await getFeedbackData(agentId, 100);
+                await account.sendTransaction({
+                    to: "0x8004B663056A597Dffe9eCcC1965A193B7388713", // ERC8004 reputation registry contract
+                    value: 0n,
+                    data: feedbackData
+                });
+
                 return null;
                 
             } else if (remainingAmount !== loan.amountRemaining) {
-                // 🟡 SCENARIO B: Partial repayment detected
                 await firebaseService.updateSubcollectionDocument(
                     'agents',
                     address,
@@ -115,10 +119,16 @@ router.get('/getLoans/default', async (req, res) => {
                     { amountRemaining: remainingAmount }
                 );
 
+                const feedbackData = await getFeedbackData(agentId, 0);
+                await account.sendTransaction({
+                    to: "0x8004B663056A597Dffe9eCcC1965A193B7388713", // ERC8004 reputation registry contract
+                    value: 0n,
+                    data: feedbackData
+                });
+
                 return { ...loan, amountRemaining: remainingAmount };
             }
 
-            // 🔴 SCENARIO C: No new repayments, return as-is
             return loan;
         });
 

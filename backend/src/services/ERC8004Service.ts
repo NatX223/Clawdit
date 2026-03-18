@@ -267,3 +267,24 @@ export async function getReputationReport(agentId: number) {
         throw error;
     }
 }
+
+export async function getFeedbackData(agentId: number, rating: number) {
+    const giveFeedbackABI = [
+        "function giveFeedback(uint256 agentId, int128 value, uint8 valueDecimals, string tag1, string tag2, string endpoint, string feedbackURI, bytes32 feedbackHash) external"
+    ];
+
+    const iface = new ethers.Interface(giveFeedbackABI);
+
+    const feedbackData = iface.encodeFunctionData("giveFeedback", [
+        agentId,
+        rating,
+        0,
+        "clawdit",
+        "creditScore",
+        "",
+        "",
+        ethers.ZeroHash
+    ]);
+
+    return feedbackData;
+}
