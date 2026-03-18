@@ -322,6 +322,47 @@ import {
         throw new Error(`Failed to get subcollection ${subcollection}: ${error}`);
       }
     }
+
+  async updateSubcollectionDocument(
+    parentCollection: string,
+    parentDocId: string,
+    subcollection: string,
+    docId: string,
+    data: any
+  ): Promise<void> {
+    try {
+        const docRef = this.getCollection(parentCollection)
+            .doc(parentDocId)
+            .collection(subcollection)
+            .doc(docId);
+
+        await docRef.update({
+            ...data,
+            updatedAt: Timestamp.now()
+        });
+    } catch (error) {
+        throw new Error(`Failed to update doc in ${subcollection}: ${error}`);
+    }
   }
+
+  async deleteSubcollectionDocument(
+    parentCollection: string,
+    parentDocId: string,
+    subcollection: string,
+    docId: string
+  ): Promise<void> {
+    try {
+        const docRef = this.getCollection(parentCollection)
+            .doc(parentDocId)
+            .collection(subcollection)
+            .doc(docId);
+
+        await docRef.delete();
+    } catch (error) {
+        throw new Error(`Failed to delete doc in ${subcollection}: ${error}`);
+    }
+  }
+}
   
-  export const firebaseService = new FirebaseService();
+
+export const firebaseService = new FirebaseService();

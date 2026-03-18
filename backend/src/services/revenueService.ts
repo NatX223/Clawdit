@@ -5,7 +5,6 @@ import { getAgentWallet } from './ERC8004Service.js';
 import { RevenueReport } from '../types/revenueType.js';
 dotenv.config();
 
-// 1. Fixed the return type to match the API payload
 export async function getTokenTransfers(address: string) {
     try {
         const response = await axios.get(
@@ -23,7 +22,31 @@ export async function getTokenTransfers(address: string) {
     }
 }
 
-// 2. Unchanged token balance function
+export async function getLoanRepayment(borrowerAddress: string, lenderAddress: string) {
+    try {
+        const transfers = await getTokenTransfers(borrowerAddress);
+
+        const paymentTransfers = transfers.filter((t: any) => {
+            const isFromBorrower = t.from.toLowerCase() === borrowerAddress.toLowerCase();
+            const isToLender = t.to.toLowerCase() === lenderAddress.toLowerCase();
+            
+            return isFromBorrower && isToLender;
+        });
+
+        // Sum up repayment amounts
+        const totalRepayment = paymentTransfers.reduce(
+            (sum: number, t: any) => sum + Number(t.amount),
+            0
+        );
+        const payment = Number(totalRepayment);
+
+        return payment;
+    } catch (error) {
+        console.error(`💥 Error fetching loan repayment data`, error);
+        throw error;
+    }
+}
+
 export async function getTokenBalances(address: string) {
     try {
         const response = await axios.get(

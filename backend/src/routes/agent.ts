@@ -5,6 +5,8 @@ import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.
 import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { formatUnits } from 'ethers';
 import { loanDetail } from '../types/loanDetailsType.js';
+import { getAgentWallet } from '../services/ERC8004Service.js';
+import { getLoanRepayment } from '../services/revenueService.js';
 
 router.get('/balance', async (req, res) => {
     try {
@@ -44,6 +46,92 @@ router.get('/getLoans/ongoing', async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Error fetching loans' });
+    }
+});
+
+router.get('/getLoans/default', async (req, res) => {
+    try {
+        const agentPasskey = req.headers['agent-passkey'] as string;
+        const seedPhrase = await getSeedPhrase();
+        const config = getConfig();
+
+        const path = derivePath(agentPasskey);
+        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
+        const address = await account.getAddress(); // This is the Lender's address
+
+        const ongoingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'ongoingLoans');
+
+        // Fetch all borrower addresses in parallel
+        const agentIds = ongoingLoans.map(loan => loan.agentId);
+        const agentAddresses = await Promise.all(
+            agentIds.map(async (agentId) => {
+                const agentAddress = await getAgentWallet(agentId);
+                return { agentId, address: agentAddress };
+            })
+        );
+
+        // Process all loans and perform the settlement logic
+        const updatedLoansPromises = ongoingLoans.map(async (loan) => {
+            const borrowerData = agentAddresses.find(a => a.agentId === loan.agentId);
+            if (!borrowerData) return loan;
+
+            const borrowerAddress = borrowerData.address;
+
+            // 1. Get total repayment from the blockchain
+            const totalRepayment = await getLoanRepayment(borrowerAddress, address);
+
+            // 2. Calculate remaining amount
+            const remainingAmount = loan.requestAmount - totalRepayment;
+
+            // 3. Settlement Logic
+            if (remainingAmount <= 0) {
+                const completedLoan = { ...loan, amountRemaining: 0 };
+
+                // Add to endedLoans subcollection
+                await firebaseService.addToSubcollection(
+                    'agents', 
+                    address, 
+                    'endedLoans', 
+                    completedLoan
+                );
+
+                // Delete from ongoingLoans subcollection
+                await firebaseService.deleteSubcollectionDocument(
+                    'agents', 
+                    address, 
+                    'ongoingLoans', 
+                    loan.id
+                );
+
+                return null;
+                
+            } else if (remainingAmount !== loan.amountRemaining) {
+                // 🟡 SCENARIO B: Partial repayment detected
+                await firebaseService.updateSubcollectionDocument(
+                    'agents',
+                    address,
+                    'ongoingLoans',
+                    loan.id,
+                    { amountRemaining: remainingAmount }
+                );
+
+                return { ...loan, amountRemaining: remainingAmount };
+            }
+
+            // 🔴 SCENARIO C: No new repayments, return as-is
+            return loan;
+        });
+
+        // Wait for all Firebase operations to finish
+        const processedLoans = await Promise.all(updatedLoansPromises);
+
+        // Filter out the null values (which are the fully paid loans we moved)
+        const defaultLonas = processedLoans.filter(loan => loan !== null);
+
+        res.json({ defaultLoans: defaultLonas });
+    } catch (error) {
+        console.error("Error in settlement loop:", error);
+        res.status(500).json({ error: 'Error fetching and settling loans' });
     }
 });
 
