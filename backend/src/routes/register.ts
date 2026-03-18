@@ -5,26 +5,40 @@ import {
 import express from 'express';
 const router = express.Router();
 import dotenv from 'dotenv';
-import crypto from 'crypto';
-import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.js';
+import WDK from '@tetherto/wdk';
+import WalletManagerEvm from '@tetherto/wdk-wallet-evm';
+import { deriveShares, getConfig } from '../services/walletService.js';
 import { firebaseService } from '../services/firebaseService.js';
 
 dotenv.config();
 
 router.post('/register', async (req, res) => {
     try {
-        const seedPhrase = await getSeedPhrase();
+        const seedPhrase = WDK.getRandomSeedPhrase();
+
+        const wdkWithWallets = new WDK(seedPhrase)
+        .registerWallet('ethereum', WalletManagerEvm, {
+            provider: 'https://eth.drpc.org'
+        });
+
+        const accounts = {
+            ethereum: await wdkWithWallets.getAccount('ethereum', 0)
+        }
+
+        for (const [chain, account] of Object.entries(accounts)) {
+            const address = await account.getAddress()
+            console.log(`   ${chain.toUpperCase()}: ${address}`)
+        }
+
         const config = getConfig();
 
-        const code = crypto.randomBytes(12).toString('hex');
-        const agentCode = `clawdit_live_${code}`;
+        const shares = deriveShares(seedPhrase);
+        const agentCode = shares[1];
 
-        const path = derivePath(agentCode);
-
-        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
+        const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
 
         const address = await account.getAddress();
-        const details = { address: address }
+        const details = { address: address, share: shares[0] }
         await firebaseService.createDocument('agents', details, address)
         res.json({address, agentCode});
     } catch (error) {

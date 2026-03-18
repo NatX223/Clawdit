@@ -1,15 +1,14 @@
 // @ts-ignore
 import sss from 'shamirs-secret-sharing';
 import dotenv from 'dotenv';
-import crypto from 'crypto';
 
 dotenv.config();
 
-export async function getSeedPhrase() {
+export async function getSeedPhrase(share0: string, share1: string) {
   try {
     const recoveredBuffer = sss.combine([
-        Buffer.from(process.env.SHARE1!, 'hex'),
-        Buffer.from(process.env.SHARE2!, 'hex')
+        Buffer.from(share0, 'hex'),
+        Buffer.from(share1, 'hex')
     ]);
 
     const seedPhrase = recoveredBuffer.toString();
@@ -20,13 +19,15 @@ export async function getSeedPhrase() {
   }
 }
 
-export function derivePath(agentPasskey: string): string {
-  const hash = crypto.createHash('sha256').update(agentPasskey).digest('hex');
-  
-  const hexSegment = hash.substring(0, 8);
-  const index = parseInt(hexSegment, 16) & 0x7FFFFFFF; 
+export function deriveShares(seedPhrase: string): string[] {
+  const secret = Buffer.from(seedPhrase);
+  const shares = sss.split(secret, { shares: 3, threshold: 2 });
 
-  return `0'/0/${index}`;
+  const hexShares = shares.map(share => share.toString('hex'));
+
+  hexShares.pop();
+
+  return hexShares;
 }
 
 export function getConfig() {
