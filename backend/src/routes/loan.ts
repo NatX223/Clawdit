@@ -26,15 +26,18 @@ router.post('/dispense', async (req, res) => {
 
         const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
         
-        // await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
+        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
+        await firebaseService.deleteDocument('loanRequests', String(agentId));
         const sendAmount = loanRequest?.requestAmount;
 
         console.log(recipient, "recipient", seedPhrase, "seedPhrase");
 
+        const amount = ethers.parseUnits(String(sendAmount), 6);
+
         const result = await account.transfer({
             token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
             recipient: recipient,
-            amount: BigInt(sendAmount!)
+            amount: amount
         });
 
         console.log(result.hash);        

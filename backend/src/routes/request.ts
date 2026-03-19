@@ -38,14 +38,13 @@ router.get('/getRequests', async (req, res) => {
         const { address } = req.query;
         const balanceData = await getTokenBalances(String(address));
         const balance = String(balanceData.amount);
-        const _balance = ethers.parseUnits(balance.toString(), 6);
 
         const loanRequests = await firebaseService.getDocumentsPaginated(
             'loanRequests',
             10,
-            undefined, // Third param is startAfter (set to undefined for the first page)
+            undefined, 
             (ref: CollectionReference) => ref
-                .where('requestAmount', '<', Number(_balance))
+                .where('requestAmount', '<', Number(balance))
                 .orderBy('requestAmount')
         );
 
