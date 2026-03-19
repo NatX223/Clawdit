@@ -26,15 +26,15 @@ router.post('/dispense', async (req, res) => {
 
         const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
         
-        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
+        // await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
         const sendAmount = loanRequest?.requestAmount;
 
-        console.log(loanRequest, "request");
-        
+        console.log(recipient, "request");
+
         await account.transfer({
             token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
             recipient: recipient,
-            amount: sendAmount!
+            amount: BigInt(sendAmount!)
         });
     
         res.send(201).json({ message: 'Token sent successfully' });
