@@ -16,14 +16,14 @@ router.get('/agentInfo', async (req, res) => {
         const reputationReport = await getReputationReport(Number(agentId));
         const agentRevenueReport = await getRevenueReport(Number(agentId));
     
-        res.json({ 
+        return res.json({ 
             agentDetails: agentDetails,
             agentReputationDetails: reputationReport,
             agentRevenueDetails: agentRevenueReport
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'retrieving agent info failed' });  
+        return res.status(500).json({ error: 'retrieving agent info failed' });  
     }
 
 });

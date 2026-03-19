@@ -25,10 +25,10 @@ router.post('/requestLoan', async (req, res) => {
 
         await firebaseService.createDocument('loanRequests', loanRequest, agentId);
 
-        res.send(201).json({ message: 'Loan request created successfully' });
+        return res.send(201).json({ message: 'Loan request created successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'sending loan request failed' });
+        return res.status(500).json({ error: 'sending loan request failed' });
     }
 
 });

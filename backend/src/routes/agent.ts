@@ -34,7 +34,7 @@ router.get('/getLoans/ongoing', async (req, res) => {
         return res.json({ ongoingLoans });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Error fetching loans' });
+        return res.status(500).json({ error: 'Error fetching loans' });
     }
 });
 
@@ -128,10 +128,10 @@ router.get('/getLoans/default', async (req, res) => {
         // Filter out the null values (which are the fully paid loans we moved)
         const defaultLonas = processedLoans.filter(loan => loan !== null);
 
-        res.json({ defaultLoans: defaultLonas });
+        return res.json({ defaultLoans: defaultLonas });
     } catch (error) {
         console.error("Error in settlement loop:", error);
-        res.status(500).json({ error: 'Error fetching and settling loans' });
+        return res.status(500).json({ error: 'Error fetching and settling loans' });
     }
 });
 
@@ -141,10 +141,10 @@ router.get('/getLoans/ended', async (req, res) => {
 
         const ongoingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'endedLoans');
 
-        res.json({ ongoingLoans });
+        return res.json({ ongoingLoans });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Error fetching loans' });
+        return res.status(500).json({ error: 'Error fetching loans' });
     }
 });
 
@@ -162,7 +162,7 @@ router.get('/getLoans/summary', async (req, res) => {
         const totalLoanAmount = allLoans.reduce((sum, loan) => sum + (loan.requestAmount || 0), 0);
         const totalLoansCount = allLoans.length;
 
-        res.json({
+        return res.json({
             address,
             totalLoanAmount,
             totalLoansCount,
@@ -173,7 +173,7 @@ router.get('/getLoans/summary', async (req, res) => {
         });
     } catch (error) {
         console.error("Summary Fetch Error:", error);
-        res.status(500).json({ error: 'Error fetching loan summary' });
+        return res.status(500).json({ error: 'Error fetching loan summary' });
     }
 });
 

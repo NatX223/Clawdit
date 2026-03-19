@@ -91,13 +91,13 @@ router.post('/collect', async (req, res) => {
 
         if (!receipt) {
             const feedbackData = await getFeedbackData(Number(agentId), 0);
-            await account.sendTransaction({
+            const result = await account.sendTransaction({
                 to: "0x8004B663056A597Dffe9eCcC1965A193B7388713", // ERC8004 reputation registry contract
                 value: 0n,
                 data: feedbackData
             });
 
-            res.status(201).json({ error: 'Collecting payment failed, approval not enough or balance not enough'});
+            return res.status(201).json({ error: 'Collecting payment failed, approval not enough or balance not enough'});
         }
 
         const feedbackData = await getFeedbackData(Number(agentId), 50);
@@ -110,10 +110,10 @@ router.post('/collect', async (req, res) => {
         await firebaseService.deleteSubcollectionDocument('agents', String(address), 'ongoingLoans', loan[0].id);
         await firebaseService.addToSubcollection('agents', String(address), 'endedLoans', {...loan, amountRemaining: 0});
 
-        res.send(201).json({ message: 'Loan repaid successfully' });
+        return res.send(201).json({ message: 'Loan repaid successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Sending token failed' });  
+        return res.status(500).json({ error: 'Sending token failed' });  
     }
 
 });

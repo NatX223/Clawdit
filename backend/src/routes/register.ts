@@ -42,10 +42,10 @@ router.post('/register', async (req, res) => {
         const address = await account.getAddress();
         const details = { address: address, share: shares[0] }
         await firebaseService.createDocument('agents', details, address)
-        res.json({address, agentCode});
+        return res.json({address, agentCode});
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'wallet creation and registration failed' });
+        return res.status(500).json({ error: 'wallet creation and registration failed' });
     }
 });
 
@@ -104,10 +104,10 @@ router.post('/registerERC8004', async (req, res) => {
         const agentId = event?.args.agentId;
         console.log(agentId);        
 
-        res.send(201).json({ agentId: Number(agentId) });
+        return res.send(201).json({ agentId: Number(agentId) });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'error registering agent Identity' });
+        return res.status(500).json({ error: 'error registering agent Identity' });
     }
 })
 
