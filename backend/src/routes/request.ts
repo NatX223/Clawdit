@@ -1,9 +1,8 @@
 import express from 'express';
 const router = express.Router();
 import { firebaseService } from '../services/firebaseService.js';
-import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.js';
-import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { CollectionReference } from 'firebase-admin/firestore';
+import { getTokenBalances } from '../services/revenueService.js';
 
 router.post('/requestLoan', async (req, res) => {
     try {
@@ -35,19 +34,13 @@ router.post('/requestLoan', async (req, res) => {
 
 router.get('/getRequests', async (req, res) => {
     try {
-        const agentPasskey = req.headers['agent-passkey'] as string;
-        const seedPhrase = await getSeedPhrase();
-        const config = getConfig();
-
-        const path = derivePath(agentPasskey);
-        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
-
-        const balance = await account.getTokenBalance("0xd077a400968890eacc75cdc901f0356c943e4fdb");
+        const { address } = req.query;
+        const balance = await getTokenBalances(String(address));
 
         const loanRequests = await firebaseService.getDocumentsPaginated(
             'loanRequests',
             10,
-            (ref: CollectionReference) => ref.where('type', '==', 'uncollaterized').where('requestAmount', '<', balance)
+            (ref: CollectionReference) => ref.where('requestAmount', '<', Number(balance))
         );
         res.json(loanRequests.documents);
     } catch (error) {

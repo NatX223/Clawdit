@@ -1,31 +1,32 @@
 import express from 'express';
 const router = express.Router();
 import { firebaseService } from '../services/firebaseService.js';
-import { derivePath, getConfig, getSeedPhrase } from '../services/walletService.js';
+import { getConfig, getSeedPhrase } from '../services/walletService.js';
 import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
 import { getAgentWallet, getFeedbackData } from '../services/ERC8004Service.js';
 import { loanRequest } from '../types/loanRequestType.js';
 import { loanDetail } from '../types/loanDetailsType.js';
 import { CollectionReference } from 'firebase-admin/firestore';
 import { ethers } from 'ethers';
+import { agentDoc } from '../types/agentDocType.js';
 
 router.post('/dispense', async (req, res) => {
     try {
-        const { agentId } = req.query;
+        const { agentId, address } = req.query;
+
+        const doc = await firebaseService.getDocument<agentDoc>("agents", String(address));
+
+        const agentPasskey = req.headers['agent-passkey'] as string;
+        const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
+        const config = getConfig();
+
+        const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
+
 
         const recipient = await getAgentWallet(Number(agentId));
 
-        const agentPasskey = req.headers['agent-passkey'] as string;
-
-        const seedPhrase = await getSeedPhrase();
-        const config = getConfig();
-
-        const path = derivePath(agentPasskey);
-        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
-        const address = await account.getAddress();
-
         const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
-        await firebaseService.addToSubcollection<loanDetail>('agents', address, 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
+        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
         const sendAmount = loanRequest?.requestAmount;
 
         await account.transfer({
@@ -44,21 +45,21 @@ router.post('/dispense', async (req, res) => {
 
 router.post('/collect', async (req, res) => {
     try {
-        const { agentId } = req.query;
+        const { agentId, address } = req.query;
 
         const borrowerAddress = await getAgentWallet(Number(agentId));
-        const agentPasskey = req.headers['agent-passkey'] as string;
 
-        const seedPhrase = await getSeedPhrase();
+        const doc = await firebaseService.getDocument<agentDoc>("agents", String(address));
+
+        const agentPasskey = req.headers['agent-passkey'] as string;
+        const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
         const config = getConfig();
+
+        const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
 
         const now = new Date();
 
-        const path = derivePath(agentPasskey);
-        const account = new WalletAccountEvmErc4337(seedPhrase!, path, config);
-        const address = await account.getAddress();
-
-        const loan = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', address, 'ongoingLoans', (ref: CollectionReference) => ref.where('agentId', '==', agentId).where('dueDate', '<', now));
+        const loan = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'ongoingLoans', (ref: CollectionReference) => ref.where('agentId', '==', agentId).where('dueDate', '<', now));
         const repaymentAmount = loan[0].requestAmount;
 
         const erc20Abi = [
@@ -69,7 +70,7 @@ router.post('/collect', async (req, res) => {
 
         const transferData = iface.encodeFunctionData("transferFrom", [
             borrowerAddress,
-            address,
+            String(address),
             BigInt(repaymentAmount)
         ]);
 
@@ -99,8 +100,8 @@ router.post('/collect', async (req, res) => {
             data: feedbackData
         });
 
-        await firebaseService.deleteSubcollectionDocument('agents', address, 'ongoingLoans', loan[0].id);
-        await firebaseService.addToSubcollection('agents', address, 'endedLoans', {...loan, amountRemaining: 0});
+        await firebaseService.deleteSubcollectionDocument('agents', String(address), 'ongoingLoans', loan[0].id);
+        await firebaseService.addToSubcollection('agents', String(address), 'endedLoans', {...loan, amountRemaining: 0});
 
         res.send(201).json({ message: 'Loan repaid successfully' });
     } catch (error) {
