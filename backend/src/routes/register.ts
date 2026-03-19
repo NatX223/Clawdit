@@ -85,10 +85,10 @@ router.post('/registerERC8004', async (req, res) => {
             data: regData
         });
 
-        const receipt = await account.getTransactionReceipt(result.hash);
+        const receipt = await account.getUserOperationReceipt(result.hash);
 
         if (!receipt) {
-            res.status(500).json({ error: 'Sending registration transaction failed'});
+            return res.status(500).json({ error: 'Sending registration transaction failed'});
         }
 
         const event = receipt?.logs
