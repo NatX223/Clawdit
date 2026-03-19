@@ -3,6 +3,7 @@ const router = express.Router();
 import { firebaseService } from '../services/firebaseService.js';
 import { CollectionReference } from 'firebase-admin/firestore';
 import { getTokenBalances } from '../services/revenueService.js';
+import { ethers } from 'ethers';
 
 router.post('/requestLoan', async (req, res) => {
     try {
@@ -36,15 +37,16 @@ router.get('/getRequests', async (req, res) => {
     try {
         const { address } = req.query;
         const balanceData = await getTokenBalances(String(address));
-        const balance = Number(balanceData.amount);
+        const balance = String(balanceData.amount);
+        const _balance = ethers.parseUnits(balance.toString(), 6);
 
         const loanRequests = await firebaseService.getDocumentsPaginated(
             'loanRequests',
             10,
             undefined, // Third param is startAfter (set to undefined for the first page)
             (ref: CollectionReference) => ref
-                .where('requestAmount', '<', balance)
-                .orderBy('requestAmount') // CRITICAL: Must match the inequality field
+                .where('requestAmount', '<', Number(_balance))
+                .orderBy('requestAmount')
         );
 
         return res.json(loanRequests.documents);
