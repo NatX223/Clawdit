@@ -10,7 +10,7 @@ router.post('/requestLoan', async (req, res) => {
 
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + loanDuration);
-        const requestAmount_ = Number(requestAmount) * Math.pow(10, 6);
+        const requestAmount_ = Number(requestAmount);
 
         const loanRequest = {
             agentId: agentId,
@@ -35,17 +35,22 @@ router.post('/requestLoan', async (req, res) => {
 router.get('/getRequests', async (req, res) => {
     try {
         const { address } = req.query;
-        const balance = await getTokenBalances(String(address));
+        const balanceData = await getTokenBalances(String(address));
+        const balance = Number(balanceData.amount);
 
         const loanRequests = await firebaseService.getDocumentsPaginated(
             'loanRequests',
             10,
-            (ref: CollectionReference) => ref.where('requestAmount', '<', Number(balance))
+            undefined, // Third param is startAfter (set to undefined for the first page)
+            (ref: CollectionReference) => ref
+                .where('requestAmount', '<', balance)
+                .orderBy('requestAmount') // CRITICAL: Must match the inequality field
         );
-        res.json(loanRequests.documents);
+
+        return res.json(loanRequests.documents);
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Fetching loan requests failed' });
+        console.error(error);
+        return res.status(500).json({ error: 'Fetching loan requests failed' });
     }
 });
 
