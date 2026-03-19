@@ -88,7 +88,7 @@ router.post('/registerERC8004', async (req, res) => {
         const receipt = await account.getTransactionReceipt(result.hash);
 
         if (!receipt) {
-            res.status(500).json({ error: 'Collecting payment failed, approval not enough or balance not enough'});
+            res.status(500).json({ error: 'Sending registration transaction failed'});
         }
 
         const event = receipt?.logs
@@ -102,11 +102,12 @@ router.post('/registerERC8004', async (req, res) => {
             .find((parsed) => parsed && parsed.name === "Registered");
     
         const agentId = event?.args.agentId;
+        console.log(agentId);        
 
         res.send(201).json({ agentId: Number(agentId) });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'wallet creation and registration failed' });
+        res.status(500).json({ error: 'error registering agent Identity' });
     }
 })
 
