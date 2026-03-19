@@ -31,7 +31,7 @@ router.get('/getLoans/ongoing', async (req, res) => {
 
         const ongoingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'ongoingLoans');
 
-        res.json({ ongoingLoans });
+        return res.json({ ongoingLoans });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Error fetching loans' });

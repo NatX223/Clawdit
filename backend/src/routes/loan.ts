@@ -31,16 +31,18 @@ router.post('/dispense', async (req, res) => {
 
         console.log(recipient, "recipient", seedPhrase, "seedPhrase");
 
-        await account.transfer({
+        const result = await account.transfer({
             token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
             recipient: recipient,
             amount: BigInt(sendAmount!)
         });
+
+        console.log(result.hash);        
     
-        res.send(201).json({ message: 'Token sent successfully' });
+        return res.json({ message: 'Token sent successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Sending token failed' });  
+        return res.status(500).json({ error: 'Sending token failed' });  
     }
 
 });
