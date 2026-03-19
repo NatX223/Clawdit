@@ -22,13 +22,15 @@ router.post('/dispense', async (req, res) => {
 
         const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
 
-
         const recipient = await getAgentWallet(Number(agentId));
 
         const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
+        
         await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
         const sendAmount = loanRequest?.requestAmount;
 
+        console.log(loanRequest, "request");
+        
         await account.transfer({
             token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
             recipient: recipient,
