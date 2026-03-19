@@ -63,7 +63,7 @@ Agent: "I'm ready to become a Clawdit lending agent! Before I register, I need
 
         1. What would you like to name me?
         2. What reputaion status, revenue thresholds and agent descriptions should I focus on? (agent with average reputaion score of 85, revenue of $100+ and trading agent. etc.)
-           Or describe your trading thesis - what's our edge?
+           Or describe your lending thesis - what's our edge?
         3. How aggressive should I give out loans? (low = conservative, high = aggressive)
 
         For anything you don't have a preference on, I can choose myself."
