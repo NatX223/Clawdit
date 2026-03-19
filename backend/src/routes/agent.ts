@@ -3,7 +3,6 @@ const router = express.Router();
 import { firebaseService } from '../services/firebaseService.js';
 import { getConfig, getSeedPhrase } from '../services/walletService.js';
 import { WalletAccountEvmErc4337 } from '@tetherto/wdk-wallet-evm-erc-4337';
-import { formatUnits } from 'ethers';
 import { loanDetail } from '../types/loanDetailsType.js';
 import { getAgentWallet, getFeedbackData } from '../services/ERC8004Service.js';
 import { getLoanRepayment, getTokenBalances } from '../services/revenueService.js';
@@ -13,16 +12,16 @@ import { agentDoc } from '../types/agentDocType.js';
 router.get('/balance', async (req, res) => {
     try {
         const { address } = req.query;
-        const balance = await getTokenBalances(String(address));
+        
+        const balanceData = await getTokenBalances(String(address));
 
-        const tokenBalnceString = formatUnits(balance, 6); 
+        const tokenBalance = Number(balanceData.amount);
 
-        const tokenBalnce = Number(tokenBalnceString);
-
-        res.json({ tokenBalnce });
+        return res.json({ tokenBalance });
+        
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Fetching balance failed' });  
+        console.error("Balance Fetch Error:", error);
+        return res.status(500).json({ error: 'Fetching balance failed' });  
     }
 });
 
