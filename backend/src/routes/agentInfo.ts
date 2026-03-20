@@ -12,6 +12,7 @@ router.get('/agentInfo', async (req, res) => {
         if (!agentId) {
             return res.status(400).json({ error: 'Agent ID is required' });
         }
+
         const agentDetails = await getAgentRegistration(Number(agentId));
         const reputationReport = await getReputationReport(Number(agentId));
         const agentRevenueReport = await getRevenueReport(Number(agentId));

@@ -176,4 +176,18 @@ router.get('/getLoans/summary', async (req, res) => {
     }
 });
 
+router.get('/getLoans/owing', async (req, res) => {
+    try {
+        const { address } = req.query;
+
+        const owingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'owingLoans');
+
+        return res.json({ owingLoans });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: 'Error fetching loans' });
+    }
+});
+
+
 export default router;
