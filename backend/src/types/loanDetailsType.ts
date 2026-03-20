@@ -6,6 +6,6 @@ export interface loanDetail {
     repaymentPlan: string;
     loanDuration: number;
     dueDate: Date;
-    interest: number;
+    interest: string;
     amountRemaining: number;
 }

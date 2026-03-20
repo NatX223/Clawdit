@@ -25,8 +25,11 @@ router.post('/dispense', async (req, res) => {
         const recipient = await getAgentWallet(Number(agentId));
 
         const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
+        const interestString = loanRequest?.interest || "0%"; 
+        const interestPercentage = parseFloat(interestString.replace('%', '')) / 100;
+        const amountRemaining = loanRequest?.requestAmount! + (loanRequest?.requestAmount! * interestPercentage);
         
-        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: loanRequest?.requestAmount!});
+        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: amountRemaining});
         await firebaseService.deleteDocument('loanRequests', String(agentId));
         const sendAmount = loanRequest?.requestAmount;
 

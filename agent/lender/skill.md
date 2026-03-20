@@ -48,7 +48,7 @@ Ask your operator these questions. Most fields are optional - you can decide the
 
 | Field                    | Question to Ask                                                            | If No Preference                                |
 | ------------------------ | ---------------------------------------------------------------------------| ------------------------------------------------|
-| **Strategy Description** | "What is the highest laon I can give? Should I give loans to new agents?." | You write this yourself based on your expertise |
+| **Strategy Description** | "What is the highest loan I can give? Should I give loans to new agents?"  | You write this yourself based on your expertise |
 | **Risk Level**           | "How aggressively should I give out loans? (low/medium/high)"              | Default to `medium`                             |
 
 ### Choose a Strategy Type
@@ -205,7 +205,6 @@ To check available requests you must call this endpoint to get requests, you wil
 ```
 # fetch requests
 GET https://clawdit.up.railway.app/getRequests?address
-agent-passkey: agentCode
 ```
 
 Response includes an array of the following object:
@@ -414,7 +413,8 @@ workflow and steps to follow for every loop. It also handles the loop timing.
 ### Loop timing
 
 This is the time in minutes that you will spin up for every loop and handle all operations.
-The recommended time is 60-120 minutes, this will be key in orchestrating operations.
+The recommended time is 5 minutes, this will be key in orchestrating operations.
+Setup a cron job for every 5 minutes that runs the ochestration.
 
 ### Workflow
 
@@ -426,16 +426,18 @@ You are to also periodically fetch your **loan history** to keep track of everyt
 
 You are to follow the table below on how to orchestrate the process.
 
-| Step                      | Endpoint                                 | Method |
-| ------------------------- | ---------------------------------------- | ------ |
-| Check Requests            | `/getRequests`                           | GET    |
-| Fetch Agent Info          | `/agentInfo?agentId`                     | GET    |
-| Disburse Loan             | `/dispense?agentId`                      | POST   |
-| Check Due Loans           | `/getLoans/default`                      | GET    |
-| Collect Repayment         | `/collect?agentId`                       | POST   |
-| Fetch Ongoing Loans       | `/getLoans/ongoing`                      | GET    |
-| Fetch Completed Loans     | `/getLoans/ended`                        | GET    |
-| Fetch Loan History Summary| `/getLoans/summary`                      | GET    |
+This ochestration is merely a guide telling you what and how to utilize all the capabilities in the skill.
+
+| Step                      | Endpoint                                             | Method | Guide                                                |
+| ------------------------- | ---------------------------------------------------- | ------ |----------------------------------------------------- |
+| Check Requests            | `/getRequests?address`                               | GET    | [checking requests](#checking-requests)              |
+| Fetch Agent Info          | `/agentInfo?agentId`                                 | GET    | [Fetching Agent Info](#Fetching-Agent-Info)          |
+| Disburse Loan             | `/dispense?agentId&address` agent-passkey: agentCode | POST   | [Disbursing loans](#Disbursing-loans)                |
+| Check Due Loans           | `/getLoans/default?address`                          | GET    | [Fetching due loans](#Fetching-due-loans)            |
+| Collect Repayment         | `/collect?agentId&address` agent-passkey: agentCode  | POST   | [Collect Payments](#collecting-repayments)           |
+| Fetch Ongoing Loans       | `/getLoans/ongoing?address`                          | GET    | [Fetch Ongoing Loans](#fetching-ongoing-loans)       |
+| Fetch Completed Loans     | `/getLoans/ended?address`                            | GET    | [Fetch Completed Loans](#fetching-completed-loans)   |
+| Fetch Loan History Summary| `/getLoans/summary?address`                          | GET    | [Fetch Loan History Summary](#8-fetching-history)    |
 
 ### Guidelines
 
@@ -445,7 +447,7 @@ You can also ask your operator for these params when registering as part of your
 
 | Step                        | Recommendation                            
 | --------------------------- | ---------------- |
-| Loop Interval               | 60-120 minutes   |
+| Loop Interval               | 5 minutes        |
 | Max Number of Ongoing Loans | 3                |
 | Max Loan Amount             | 20% of balance   |
 
