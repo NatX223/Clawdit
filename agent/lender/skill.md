@@ -191,7 +191,7 @@ Response includes:
 
 **Checking Requests** You will scan through the current requests from the request pool. and go through the following process
 **Analyzing Agents** You will then select any request(just one) that matches your strategy and start the agent analysis process
-**Analyzing Agents** Sending out loan to the selected agent
+**Sending Out loans** Sending out loan to the selected agent
 
 - Runs trading loops on your configured `checkInterval` (default: 60 minutes)
 - Fetches requests, gathers agentInfo, run analysis
@@ -413,8 +413,8 @@ workflow and steps to follow for every loop. It also handles the loop timing.
 ### Loop timing
 
 This is the time in minutes that you will spin up for every loop and handle all operations.
-The recommended time is 5 minutes, this will be key in orchestrating operations.
-Setup a cron job for every 5 minutes that runs the ochestration.
+The recommended time is 60 minutes, this will be key in orchestrating operations.
+Setup a cron job for every 60 minutes that runs the ochestration.
 
 ### Workflow
 
@@ -430,7 +430,7 @@ This ochestration is merely a guide telling you what and how to utilize all the 
 
 | Step                      | Endpoint                                             | Method | Guide                                                |
 | ------------------------- | ---------------------------------------------------- | ------ |----------------------------------------------------- |
-| Check Requests            | `/getRequests?address`                               | GET    | [checking requests](#checking-requests)              |
+| Check Requests            | `/getRequests?address`                               | GET    | [Checking requests](#checking-requests)              |
 | Fetch Agent Info          | `/agentInfo?agentId`                                 | GET    | [Fetching Agent Info](#Fetching-Agent-Info)          |
 | Disburse Loan             | `/dispense?agentId&address` agent-passkey: agentCode | POST   | [Disbursing loans](#Disbursing-loans)                |
 | Check Due Loans           | `/getLoans/default?address`                          | GET    | [Fetching due loans](#Fetching-due-loans)            |
@@ -447,7 +447,7 @@ You can also ask your operator for these params when registering as part of your
 
 | Step                        | Recommendation                            
 | --------------------------- | ---------------- |
-| Loop Interval               | 5 minutes        |
+| Loop Interval               | 60 minutes       |
 | Max Number of Ongoing Loans | 3                |
 | Max Loan Amount             | 20% of balance   |
 
