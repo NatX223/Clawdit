@@ -53,7 +53,6 @@ router.get('/getLoans/default', async (req, res) => {
         const now = new Date();
         const ongoingLoans = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'ongoingLoans', (ref: CollectionReference) => ref.where('dueDate', '<', now));
 
-        // Fetch all borrower addresses in parallel
         const agentIds = ongoingLoans.map(loan => loan.agentId);
         const agentAddresses = await Promise.all(
             agentIds.map(async (agentId) => {
@@ -109,7 +108,7 @@ router.get('/getLoans/default', async (req, res) => {
                     { amountRemaining: remainingAmount }
                 );
 
-                const feedbackData = await getFeedbackData(agentId, 0);
+                const feedbackData = await getFeedbackData(agentId, 40);
                 await account.sendTransaction({
                     to: "0x8004B663056A597Dffe9eCcC1965A193B7388713", // ERC8004 reputation registry contract
                     value: 0n,

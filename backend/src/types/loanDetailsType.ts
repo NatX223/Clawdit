@@ -8,4 +8,5 @@ export interface loanDetail {
     dueDate: Date;
     interest: string;
     amountRemaining: number;
+    lender: string;
 }

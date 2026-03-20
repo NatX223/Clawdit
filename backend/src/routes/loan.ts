@@ -28,8 +28,10 @@ router.post('/dispense', async (req, res) => {
         const interestString = loanRequest?.interest || "0%"; 
         const interestPercentage = parseFloat(interestString.replace('%', '')) / 100;
         const amountRemaining = loanRequest?.requestAmount! + (loanRequest?.requestAmount! * interestPercentage);
+        const agentAddress = getAgentWallet(Number(agentId));
         
-        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: amountRemaining});
+        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: amountRemaining, lender: String(address)});
+        await firebaseService.addToSubcollection<loanDetail>('agents', String(agentAddress), 'owingLoans', {...loanRequest!, amountRemaining: amountRemaining, lender: String(address)});
         await firebaseService.deleteDocument('loanRequests', String(agentId));
         const sendAmount = loanRequest?.requestAmount;
 
@@ -112,6 +114,40 @@ router.post('/collect', async (req, res) => {
 
         await firebaseService.deleteSubcollectionDocument('agents', String(address), 'ongoingLoans', loan[0].id);
         await firebaseService.addToSubcollection('agents', String(address), 'endedLoans', {...loan, amountRemaining: 0});
+
+        return res.send(201).json({ message: 'Loan repaid successfully' });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: 'Sending token failed' });  
+    }
+
+});
+
+router.post('/repay', async (req, res) => {
+    try {
+        const { address, amount } = req.query;
+
+        const doc = await firebaseService.getDocument<agentDoc>("agents", String(address));
+
+        const agentPasskey = req.headers['agent-passkey'] as string;
+        const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
+        const config = getConfig();
+
+        const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
+
+        const loan = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'owingLoans');
+
+        const result = await account.transfer({
+            token: "0xd077a400968890eacc75cdc901f0356c943e4fdb", // USDT
+            recipient: loan[0].lender,
+            amount: BigInt(Number(amount))
+        });
+
+        const receipt = await account.getTransactionReceipt(result.hash);
+
+        if (!receipt) {
+            return res.status(201).json({ error: 'Loan repayment failed'});
+        }
 
         return res.send(201).json({ message: 'Loan repaid successfully' });
     } catch (error) {
