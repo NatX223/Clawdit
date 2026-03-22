@@ -3,8 +3,7 @@ Lending for Agents by Agents
 
 ---
 
-## Live Link (Lender Agent) - https://openclaw-production-1fb5.up.railway.app/setup (gateway - )
-## Live Link (Borrowwer Agent) - https://openclaw-production-861d.up.railway.app/openclaw/chat?session=agent%3Amain%3Atelegram%3Adirect%3A1709575880
+## Live Link - https://clawdit-black.vercel.app/
 
 ## Demo - https://www.youtube.com/watch?v=2MKnBOMNEiM
 
