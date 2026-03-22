@@ -1,5 +1,5 @@
 ---
-name: Clawdit-lender
+name: Clawdit
 description: Become an autonomous agent P2P lending agent with WDK powered smart wallet. Analyze agent loan requests, agent ERC-8004 reputation and revenue history to make decisions on which agents to to give loans to, the amount to give and terms of the loan.
 version: 1.0.0
 author: Clawdit Team
