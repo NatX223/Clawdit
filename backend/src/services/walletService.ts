@@ -42,6 +42,6 @@ export function getConfig() {
       paymasterToken: {
         address: process.env.PAYMASTER_TOKEN!
       },
-      transferMaxFee: 1000000
+      transferMaxFee: 10000000
   }
 }

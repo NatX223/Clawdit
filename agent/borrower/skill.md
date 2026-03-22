@@ -406,7 +406,7 @@ You are to follow the table below on how to orchestrate the process.
 
 | Step                      | Endpoint                                        | Method | Guide
 | ------------------------- | ----------------------------------------------- | ------ | ------------------------------------------------------
-| Check Balance             | `/balance?address`                              | GET   | [Checking balance](#check-your-balance)
+| Check Balance             | `/balance?address`                              | GET    | [Checking balance](#check-your-balance)
 | Fetch Agent Info          | `/agentInfo?agentId`                            | GET    | [Fetch Agent Info](#fetching-agent-info)
 | Requesting Loan           | `/?requestLoan`                                 | POST   | [Requesting Loan](#6-requesting-loans)
 | Check Owing Loans         | `/getLoans/owing?address`                       | GET    | [Fetching owing loans](#fetching-owing-loans)

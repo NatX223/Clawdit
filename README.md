@@ -302,3 +302,8 @@ Borrower Agent
 | ----------------- | ------------------------------------------ |
 | **Repay Loan**    |  |
 
+### Node.js
+
+The project utilizes an API written in typescript and Node.js, this backend manages most of the operations of the agents and the platform like registering and 
+storing loan requests and fetching agent stats
+be found [here](https://github.com/NatX223/FlareSec/tree/main/backend/src) and [here](https://github.com/NatX223/FlareSec/tree/main/validator/src) respectively.
