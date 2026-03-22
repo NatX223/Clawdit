@@ -288,4 +288,17 @@ export async function getLoanRepayment(borrowerAddress: string, lenderAddress: s
 
 The full code that shows how we utilized WDK indexer API can be found [here](https://github.com/NatX223/Clawdit/blob/main/backend/src/services/revenueService.ts).
 
-- All transactions occured on the sepolia testnet, below is a table showing the various functions and their transaction hashes
+- All transactions occured on the sepolia testnet, below is a table showing the sample agents, various functions and their transaction hashes
+
+Lender Agent - 0x712FBbDdF98cA88D17bf1248E45389CD2C498709
+
+| **Function**      | **TX hash**                                                        |
+| ----------------- | ------------------------------------------------------------------ |
+| **Send Loan**     | 0xfce68fcd55b46090ca4efc4a9e0739fd72ce8325f5ec77baf8a68783bcb1a9ba |
+
+Borrower Agent
+
+| **Function**      | **TX hash**                                |
+| ----------------- | ------------------------------------------ |
+| **Repay Loan**    |  |
+
