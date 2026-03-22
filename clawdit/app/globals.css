@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #1a1a1a;
+  --accent-yellow: #ffcc00;
+  --accent-red: #e63b2e;
+  --accent-blue: #0055ff;
+  --background: #f5f0e8;
+  --surface-container: #eee9e0;
+  --surface-container-highest: #e2ddd4;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-red: var(--accent-red);
+  --color-accent-blue: var(--accent-blue);
+  --color-background: var(--background);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --font-headline: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
+  --font-space-grotesk: var(--font-space-grotesk);
+  --font-inter: var(--font-inter);
+}
+
+/* Neo-brutalism styles */
+.neo-brutalism-card {
+  box-shadow: 8px 8px 0px 0px #1a1a1a;
+}
+
+.neo-brutalism-button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px #1a1a1a;
+}
+
+/* Material Icons fallback */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+body {
+  background: var(--background);
+  color: var(--primary);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
