@@ -1,4 +1,5 @@
 # Clawdit
+
 Lending for Agents by Agents
 
 ---
@@ -32,20 +33,21 @@ their assets. Fully integrated with Flare’s infrastructure, FlareSec offers a 
 
 ## Problem Statement
 
-Today's AI agents face a "collateral ceiling" that stifles true autonomy. Despite building immense value, they lack credit access to pay for vital gas or APIs. 
-Current Web3 models require heavy over-collateralization, failing to leverage agent reputation to unlock sovereign financial operations. The problems can be summed 
+Today's AI agents face a "collateral ceiling" that stifles true autonomy. Despite building immense value, they lack credit access to pay for vital gas or APIs.
+Current Web3 models require heavy over-collateralization, failing to leverage agent reputation to unlock sovereign financial operations. The problems can be summed
 into these categories.
 
 1. Agents need credit to carry out operations without human input like taking trades, paying for API credits when needed to execute tasks
 2. Lack of agent access to credit
 3. Over-Collaterization of loans in Web3
 4. Under-Utilization of agent reputation
+
 ---
 
 ## Solution
 
-We developed Clawdit to be the agent-to-agent lending protocol. It solves the above highlighted problems by enabling agents to serve as creditors for one another, 
-facilitating a paradigm of fully uncollateralized loans. By leveraging their ERC-8004 reputation as a dynamic form of "collateral," agents can finally unlock the 
+We developed Clawdit to be the agent-to-agent lending protocol. It solves the above highlighted problems by enabling agents to serve as creditors for one another,
+facilitating a paradigm of fully uncollateralized loans. By leveraging their ERC-8004 reputation as a dynamic form of "collateral," agents can finally unlock the
 liquidity needed for autonomous operations—such as gas fees or API credits—without the friction of traditional over-collateralization.
 
 ---
@@ -84,9 +86,9 @@ The working mechanism of the agents can be broken down into 2 major steps - The 
    - The operator funds the agent address to kickstart the process.
 4. **Fecthing laons**:
    - The agent starts gathering loan requests from the central hub by calling the /getRequests endpoint.
-4. **disbursing a Loan**:
+5. **disbursing a Loan**:
    - The agent after it has selected which agemt request to fund, uses the WDK powered to sign and send tramsaction in order the agent.
-5. **Loan Checks and Repaymnets**:
+6. **Loan Checks and Repaymnets**:
    - The agent periodically checks if there any ongoing loans.
    - If there are ongoing loans or loans whose due date is passed, it promptly seeks repayment().
 
@@ -98,53 +100,57 @@ The working mechanism of the agents can be broken down into 2 major steps - The 
 | -------------- | ------------------------------------------------------------------------------------ |
 | **WDK**        | Use of generating wallets and sending transactions(sending out loans and repayment). |
 | **Node.js**    | Backend server and API                                                               |
-| **OpenClaw**   | Agentic framework.                                                                   | 
+| **OpenClaw**   | Agentic framework.                                                                   |
 
 ### WDK
 
-In order to build Clawdit we needed to give agents wallets and we effectively did that using WDK, we utilized WDK in generating wallets and creating smart wallets 
+In order to build Clawdit we needed to give agents wallets and we effectively did that using WDK, we utilized WDK in generating wallets and creating smart wallets
 for agents and sending transactions as well.
 
 - Generating wallets - WDK was used in generating wallets for agents and this accomplished generating a seed phrase first then spliting the seed phrase into 2 using
   Shamir's Secret Sharing the agent holds one and the platform backend holds the other.
   An smart account is then generated from the wallet and the address and SSS share sent back to the agent.
 
-
 ```typescript
-   router.post('/register', async (req, res) => {
-      try {
-         const seedPhrase = WDK.getRandomSeedPhrase();
+router.post("/register", async (req, res) => {
+  try {
+    const seedPhrase = WDK.getRandomSeedPhrase();
 
-         const wdkWithWallets = new WDK(seedPhrase)
-         .registerWallet('ethereum', WalletManagerEvm, {
-               provider: 'https://eth.drpc.org'
-         });
-
-         const accounts = {
-               ethereum: await wdkWithWallets.getAccount('ethereum', 0)
-         }
-
-         for (const [chain, account] of Object.entries(accounts)) {
-               const address = await account.getAddress()
-               console.log(`   ${chain.toUpperCase()}: ${address}`)
-         }
-
-         const config = getConfig();
-
-         const shares = deriveShares(seedPhrase);
-         const agentCode = shares[1];
-
-         const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
-
-         const address = await account.getAddress();
-         const details = { address: address, share: shares[0] }
-         await firebaseService.createDocument('agents', details, address)
-         return res.json({address, agentCode});
-      } catch (error) {
-         console.log(error);
-         return res.status(500).json({ error: 'wallet creation and registration failed' });
+    const wdkWithWallets = new WDK(seedPhrase).registerWallet(
+      "ethereum",
+      WalletManagerEvm,
+      {
+        provider: "https://eth.drpc.org",
       }
-   });
+    );
+
+    const accounts = {
+      ethereum: await wdkWithWallets.getAccount("ethereum", 0),
+    };
+
+    for (const [chain, account] of Object.entries(accounts)) {
+      const address = await account.getAddress();
+      console.log(`   ${chain.toUpperCase()}: ${address}`);
+    }
+
+    const config = getConfig();
+
+    const shares = deriveShares(seedPhrase);
+    const agentCode = shares[1];
+
+    const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
+
+    const address = await account.getAddress();
+    const details = { address: address, share: shares[0] };
+    await firebaseService.createDocument("agents", details, address);
+    return res.json({ address, agentCode });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ error: "wallet creation and registration failed" });
+  }
+});
 ```
 
 The full code for the wallet generation can be found [here](https://github.com/NatX223/Clawdit/blob/main/backend/src/routes/register.ts).
@@ -153,89 +159,123 @@ The full code for the wallet generation can be found [here](https://github.com/N
   The code below showcases how these were done.
 
 sending out loans
+
 ```typescript
-router.post('/dispense', async (req, res) => {
-    try {
-        const { agentId, address } = req.query;
+router.post("/dispense", async (req, res) => {
+  try {
+    const { agentId, address } = req.query;
 
-        const doc = await firebaseService.getDocument<agentDoc>("agents", String(address));
+    const doc = await firebaseService.getDocument<agentDoc>(
+      "agents",
+      String(address)
+    );
 
-        const agentPasskey = req.headers['agent-passkey'] as string;
-        const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
-        const config = getConfig();
+    const agentPasskey = req.headers["agent-passkey"] as string;
+    const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
+    const config = getConfig();
 
-        const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
+    const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
 
-        const recipient = await getAgentWallet(Number(agentId));
+    const recipient = await getAgentWallet(Number(agentId));
 
-        const loanRequest = await firebaseService.getDocument<loanRequest>('loanRequests', String(agentId));
-        const interestString = loanRequest?.interest || "0%"; 
-        const interestPercentage = parseFloat(interestString.replace('%', '')) / 100;
-        const amountRemaining = loanRequest?.requestAmount! + (loanRequest?.requestAmount! * interestPercentage);
-        const agentAddress = getAgentWallet(Number(agentId));
-        
-        await firebaseService.addToSubcollection<loanDetail>('agents', String(address), 'ongoingLoans', {...loanRequest!, amountRemaining: amountRemaining, lender: String(address)});
-        await firebaseService.addToSubcollection<loanDetail>('agents', String(agentAddress), 'owingLoans', {...loanRequest!, amountRemaining: amountRemaining, lender: String(address)});
-        await firebaseService.deleteDocument('loanRequests', String(agentId));
-        const sendAmount = loanRequest?.requestAmount;
+    const loanRequest = await firebaseService.getDocument<loanRequest>(
+      "loanRequests",
+      String(agentId)
+    );
+    const interestString = loanRequest?.interest || "0%";
+    const interestPercentage =
+      parseFloat(interestString.replace("%", "")) / 100;
+    const amountRemaining =
+      loanRequest?.requestAmount! +
+      loanRequest?.requestAmount! * interestPercentage;
+    const agentAddress = getAgentWallet(Number(agentId));
 
-        console.log(recipient, "recipient", seedPhrase, "seedPhrase");
+    await firebaseService.addToSubcollection<loanDetail>(
+      "agents",
+      String(address),
+      "ongoingLoans",
+      {
+        ...loanRequest!,
+        amountRemaining: amountRemaining,
+        lender: String(address),
+      }
+    );
+    await firebaseService.addToSubcollection<loanDetail>(
+      "agents",
+      String(agentAddress),
+      "owingLoans",
+      {
+        ...loanRequest!,
+        amountRemaining: amountRemaining,
+        lender: String(address),
+      }
+    );
+    await firebaseService.deleteDocument("loanRequests", String(agentId));
+    const sendAmount = loanRequest?.requestAmount;
 
-        const amount = ethers.parseUnits(String(sendAmount), 6);
+    console.log(recipient, "recipient", seedPhrase, "seedPhrase");
 
-        const result = await account.transfer({
-            token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
-            recipient: recipient,
-            amount: amount
-        });
+    const amount = ethers.parseUnits(String(sendAmount), 6);
 
-        console.log(result.hash);        
-    
-        return res.json({ message: 'Token sent successfully' });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ error: 'Sending token failed' });  
-    }
+    const result = await account.transfer({
+      token: "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+      recipient: recipient,
+      amount: amount,
+    });
 
+    console.log(result.hash);
+
+    return res.json({ message: "Token sent successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Sending token failed" });
+  }
 });
 ```
 
 The full code for the loan send out can be found [here](https://github.com/NatX223/Clawdit/blob/main/backend/src/routes/loan.ts)
 
 servicing loans
+
 ```typescript
-router.post('/repay', async (req, res) => {
-    try {
-        const { address, amount } = req.query;
+router.post("/repay", async (req, res) => {
+  try {
+    const { address, amount } = req.query;
 
-        const doc = await firebaseService.getDocument<agentDoc>("agents", String(address));
+    const doc = await firebaseService.getDocument<agentDoc>(
+      "agents",
+      String(address)
+    );
 
-        const agentPasskey = req.headers['agent-passkey'] as string;
-        const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
-        const config = getConfig();
+    const agentPasskey = req.headers["agent-passkey"] as string;
+    const seedPhrase = await getSeedPhrase(agentPasskey, String(doc?.share));
+    const config = getConfig();
 
-        const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
+    const account = new WalletAccountEvmErc4337(seedPhrase!, "0'/0/0", config);
 
-        const loan = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'owingLoans');
+    const loan = await firebaseService.getSubcollectionDocuments<loanDetail>(
+      "agents",
+      String(address),
+      "owingLoans"
+    );
 
-        const result = await account.transfer({
-            token: "0xd077a400968890eacc75cdc901f0356c943e4fdb", // USDT
-            recipient: loan[0].lender,
-            amount: BigInt(Number(amount))
-        });
+    const result = await account.transfer({
+      token: "0xd077a400968890eacc75cdc901f0356c943e4fdb", // USDT
+      recipient: loan[0].lender,
+      amount: BigInt(Number(amount)),
+    });
 
-        const receipt = await account.getTransactionReceipt(result.hash);
+    const receipt = await account.getTransactionReceipt(result.hash);
 
-        if (!receipt) {
-            return res.status(201).json({ error: 'Loan repayment failed'});
-        }
-
-        return res.send(201).json({ message: 'Loan repaid successfully' });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ error: 'Sending token failed' });  
+    if (!receipt) {
+      return res.status(201).json({ error: "Loan repayment failed" });
     }
 
+    return res.send(201).json({ message: "Loan repaid successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Sending token failed" });
+  }
 });
 ```
 
@@ -244,45 +284,49 @@ router.post('/repay', async (req, res) => {
 
 ```typescript
 export async function getTokenBalances(address: string) {
-    try {
-        const response = await axios.get(
-            `https://wdk-api.tether.io/api/v1/sepolia/usdt/${address}/token-balances`,
-            {
-                headers: {
-                    'x-api-key': process.env.WDK_API_KEY
-                }
-            }
-        );
-        return response.data.tokenBalance;
-    } catch (error) {
-        console.error(`❌ Failed to fetch balances for ${address}:`, error);
-        return null;
-    }
+  try {
+    const response = await axios.get(
+      `https://wdk-api.tether.io/api/v1/sepolia/usdt/${address}/token-balances`,
+      {
+        headers: {
+          "x-api-key": process.env.WDK_API_KEY,
+        },
+      }
+    );
+    return response.data.tokenBalance;
+  } catch (error) {
+    console.error(`❌ Failed to fetch balances for ${address}:`, error);
+    return null;
+  }
 }
 
-export async function getLoanRepayment(borrowerAddress: string, lenderAddress: string) {
-    try {
-        const transfers = await getTokenTransfers(borrowerAddress);
+export async function getLoanRepayment(
+  borrowerAddress: string,
+  lenderAddress: string
+) {
+  try {
+    const transfers = await getTokenTransfers(borrowerAddress);
 
-        const paymentTransfers = transfers.filter((t: any) => {
-            const isFromBorrower = t.from.toLowerCase() === borrowerAddress.toLowerCase();
-            const isToLender = t.to.toLowerCase() === lenderAddress.toLowerCase();
-            
-            return isFromBorrower && isToLender;
-        });
+    const paymentTransfers = transfers.filter((t: any) => {
+      const isFromBorrower =
+        t.from.toLowerCase() === borrowerAddress.toLowerCase();
+      const isToLender = t.to.toLowerCase() === lenderAddress.toLowerCase();
 
-        // Sum up repayment amounts
-        const totalRepayment = paymentTransfers.reduce(
-            (sum: number, t: any) => sum + Number(t.amount),
-            0
-        );
-        const payment = Number(totalRepayment);
+      return isFromBorrower && isToLender;
+    });
 
-        return payment;
-    } catch (error) {
-        console.error(`💥 Error fetching loan repayment data`, error);
-        throw error;
-    }
+    // Sum up repayment amounts
+    const totalRepayment = paymentTransfers.reduce(
+      (sum: number, t: any) => sum + Number(t.amount),
+      0
+    );
+    const payment = Number(totalRepayment);
+
+    return payment;
+  } catch (error) {
+    console.error(`💥 Error fetching loan repayment data`, error);
+    throw error;
+  }
 }
 ```
 
@@ -292,25 +336,25 @@ The full code that shows how we utilized WDK indexer API can be found [here](htt
 
 Lender Agent - 0x712FBbDdF98cA88D17bf1248E45389CD2C498709
 
-| **Function**      | **TX hash**                                                        |
-| ----------------- | ------------------------------------------------------------------ |
-| **Send Loan**     | 0xfce68fcd55b46090ca4efc4a9e0739fd72ce8325f5ec77baf8a68783bcb1a9ba |
+| **Function**  | **TX hash**                                                        |
+| ------------- | ------------------------------------------------------------------ |
+| **Send Loan** | 0xfce68fcd55b46090ca4efc4a9e0739fd72ce8325f5ec77baf8a68783bcb1a9ba |
 
 Borrower Agent
 
-| **Function**      | **TX hash**                                                        |
-| ----------------- | ------------------------------------------------------------------ |
-| **Repay Loan**    | 0x9343ee3f6b06e1f60175c9854d36a52010d32d8695578778d3fc657773c8709f |
+| **Function**   | **TX hash**                                                        |
+| -------------- | ------------------------------------------------------------------ |
+| **Repay Loan** | 0x9343ee3f6b06e1f60175c9854d36a52010d32d8695578778d3fc657773c8709f |
 
 ### Node.js
 
-The project utilizes an API written in typescript and Node.js, this backend manages most of the operations of the agents and the platform like registering and 
+The project utilizes an API written in typescript and Node.js, this backend manages most of the operations of the agents and the platform like registering and
 storing loan requests and fetching agent stats. The main functions to fetch agent info like revenue and reputation on chain was handled by the backend and served through the API. The full to the routes and services can be found [here](https://github.com/NatX223/Clawdit/blob/main/backend).
 
 ### OpenClaw
 
-The main agentic framework used to develop the borrower and lender agents was the OpenClaw framework. It provided the base structure for the agents and allowed us 
-to define their behaviors and interactions with the environment. The agents were designed to perform specific tasks such as requesting loans, disbursing loans, and 
+The main agentic framework used to develop the borrower and lender agents was the OpenClaw framework. It provided the base structure for the agents and allowed us
+to define their behaviors and interactions with the environment. The agents were designed to perform specific tasks such as requesting loans, disbursing loans, and
 managing repayments. The framework also facilitated communication between the agents and the backend services, ensuring seamless operation of the clawdit system.
 Skills for both borrowing and lending have been deployed to clawhub and can be easily installed using the clawhub commands:
 
@@ -318,6 +362,7 @@ Borrower agent - `npx clawhub install clawdit-borrower`
 Lender agent - `npx clawhub install clawdit-lender`
 
 Below show cases the reasoning for the fetching of loan requests and dispensation of loans by a lender agent
+
 ```bash
 Here's a detailed summary of the actions taken and my reasoning:
 
@@ -428,9 +473,11 @@ npm run dev
 1. setup your Openclaw bot - you can find instructions to set it up locally [here](https://docs.openclaw.ai/start/getting-started)
 
 2. Navigate to the agent directory:
+
 ```bash
 cd agent
 ```
+
 3. Edit your skill files with your local backend URL
 
 4. Open your agent and install skill (copy skill and paste)
@@ -439,7 +486,7 @@ cd agent
 
 ## Future Improvements
 
-1. Integration with Pears protocol for better A2A communication 
+1. Integration with Pears protocol for better A2A communication
 2. Mainnet deployment.
 3. Onboarding 500 agents.
 

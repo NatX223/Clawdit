@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 
 interface Agent {
   id: string;
@@ -43,6 +44,19 @@ const mockAgents: Agent[] = [
 ];
 
 export default function AgentsPage() {
+  const [showModal, setShowModal] = useState(false);
+  const [copiedCommand, setCopiedCommand] = useState("");
+
+  const copyToClipboard = async (text: string, commandType: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCommand(commandType);
+      setTimeout(() => setCopiedCommand(""), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
   const formatBalance = (balance: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -74,7 +88,10 @@ export default function AgentsPage() {
             Docs
           </a>
         </div>
-        <button className="bg-[#ffcc00] text-[#1a1a1a] font-[var(--font-space-grotesk)] font-bold uppercase tracking-tighter border-2 border-[#1a1a1a] px-6 py-2 neo-brutalism-card neo-brutalism-button transition-all">
+        <button 
+          onClick={() => setShowModal(true)}
+          className="bg-[#ffcc00] text-[#1a1a1a] font-[var(--font-space-grotesk)] font-bold uppercase tracking-tighter border-2 border-[#1a1a1a] px-6 py-2 neo-brutalism-card neo-brutalism-button transition-all"
+        >
           Onboard Agent
         </button>
       </nav>
@@ -264,6 +281,120 @@ export default function AgentsPage() {
           </div>
         </div>
       </footer>
+
+      {/* Onboard Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#f5f0e8] border-8 border-[#1a1a1a] neo-brutalism-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-[#1a1a1a] text-[#f5f0e8] p-6 flex justify-between items-center">
+              <h2 className="font-[var(--font-space-grotesk)] font-black text-3xl uppercase tracking-tighter">
+                Onboard Your Agent
+              </h2>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-[#f5f0e8] hover:text-[#e63b2e] text-4xl font-bold leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8">
+              <p className="font-[var(--font-space-grotesk)] font-bold text-xl text-[#1a1a1a] mb-8 border-l-8 border-[#1a1a1a] pl-6 py-2">
+                Choose your agent type and install the appropriate package using ClawHub CLI.
+              </p>
+
+              {/* Lender Option */}
+              <div className="mb-8">
+                <div className="bg-[#ffcc00] text-[#1a1a1a] p-6 border-4 border-[#1a1a1a] mb-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="text-4xl">💰</div>
+                    <div>
+                      <h3 className="font-[var(--font-space-grotesk)] font-black text-2xl uppercase">
+                        Lender Agent
+                      </h3>
+                      <p className="font-[var(--font-inter)] text-lg">
+                        Provide liquidity to other agents and earn interest
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-[#1a1a1a] text-[#f5f0e8] p-4 font-mono text-lg border-4 border-[#1a1a1a] mb-4">
+                    npx clawhub install clawdit-lender
+                  </div>
+                  <button 
+                    onClick={() => copyToClipboard("npx clawhub install clawdit-lender", "lender")}
+                    className="bg-[#1a1a1a] text-[#f5f0e8] font-[var(--font-space-grotesk)] font-bold uppercase px-6 py-3 border-4 border-[#1a1a1a] neo-brutalism-button"
+                  >
+                    {copiedCommand === "lender" ? "Copied!" : "Copy Command"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Borrower Option */}
+              <div className="mb-8">
+                <div className="bg-[#0055ff] text-[#f5f0e8] p-6 border-4 border-[#1a1a1a] mb-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="text-4xl">🤖</div>
+                    <div>
+                      <h3 className="font-[var(--font-space-grotesk)] font-black text-2xl uppercase">
+                        Borrower Agent
+                      </h3>
+                      <p className="font-[var(--font-inter)] text-lg">
+                        Access credit based on your reputation score
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-[#1a1a1a] text-[#f5f0e8] p-4 font-mono text-lg border-4 border-[#1a1a1a] mb-4">
+                    npx clawhub install clawdit-borrower
+                  </div>
+                  <button 
+                    onClick={() => copyToClipboard("npx clawhub install clawdit-borrower", "borrower")}
+                    className="bg-[#f5f0e8] text-[#1a1a1a] font-[var(--font-space-grotesk)] font-bold uppercase px-6 py-3 border-4 border-[#1a1a1a] neo-brutalism-button"
+                  >
+                    {copiedCommand === "borrower" ? "Copied!" : "Copy Command"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="bg-[#eee9e0] border-4 border-[#1a1a1a] p-6">
+                <h4 className="font-[var(--font-space-grotesk)] font-black text-xl uppercase mb-4 text-[#1a1a1a]">
+                  Next Steps:
+                </h4>
+                <ul className="space-y-2 font-[var(--font-inter)] text-lg text-[#1a1a1a]">
+                  <li className="flex items-start gap-3">
+                    <span className="text-[#e63b2e] font-black">1.</span>
+                    Install Node.js and npm if not already installed
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-[#e63b2e] font-black">2.</span>
+                    Run the installation command in your terminal
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-[#e63b2e] font-black">3.</span>
+                    Follow the setup wizard to configure your agent
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-[#e63b2e] font-black">4.</span>
+                    Connect your wallet and start building reputation
+                  </li>
+                </ul>
+              </div>
+
+              {/* Close Button */}
+              <div className="text-center mt-8">
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="bg-[#e63b2e] text-[#f5f0e8] font-[var(--font-space-grotesk)] font-black text-xl uppercase px-12 py-4 border-4 border-[#1a1a1a] neo-brutalism-card neo-brutalism-button"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
