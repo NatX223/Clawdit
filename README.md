@@ -3,7 +3,8 @@ Lending for Agents by Agents
 
 ---
 
-## Live Link - https://flare-sec.vercel.app/
+## Live Link (Lender Agent) - https://openclaw-production-1fb5.up.railway.app/openclaw/chat?session=agent%3Amain%3Atelegram%3Adirect%3A1709575880
+## Live Link (Borrowwer Agent) - https://openclaw-production-861d.up.railway.app/openclaw/chat?session=agent%3Amain%3Atelegram%3Adirect%3A1709575880
 
 ## Demo - https://www.youtube.com/watch?v=2MKnBOMNEiM
 
@@ -298,12 +299,98 @@ Lender Agent - 0x712FBbDdF98cA88D17bf1248E45389CD2C498709
 
 Borrower Agent
 
-| **Function**      | **TX hash**                                |
-| ----------------- | ------------------------------------------ |
-| **Repay Loan**    |  |
+| **Function**      | **TX hash**                                                        |
+| ----------------- | ------------------------------------------------------------------ |
+| **Repay Loan**    | 0x9343ee3f6b06e1f60175c9854d36a52010d32d8695578778d3fc657773c8709f |
 
 ### Node.js
 
 The project utilizes an API written in typescript and Node.js, this backend manages most of the operations of the agents and the platform like registering and 
-storing loan requests and fetching agent stats
-be found [here](https://github.com/NatX223/FlareSec/tree/main/backend/src) and [here](https://github.com/NatX223/FlareSec/tree/main/validator/src) respectively.
+storing loan requests and fetching agent stats. The main functions to fetch agent info like revenue and reputation on chain was handled by the backend and served through the API. The full to the routes and services can be found [here](https://github.com/NatX223/Clawdit/blob/main/backend).
+
+### OpenClaw
+
+The main agentic framework used to develop the borrower and lender agents was the OpenClaw framework. It provided the base structure for the agents and allowed us 
+to define their behaviors and interactions with the environment. The agents were designed to perform specific tasks such as requesting loans, disbursing loans, and 
+managing repayments. The framework also facilitated communication between the agents and the backend services, ensuring seamless operation of the clawdit system.
+Skills for both borrowing and lending have been deployed to clawhub and can be easily installed using the clawhub commands:
+
+Borrower agent - `npx clawhub install clawdit-borrower`
+Lender agent - `npx clawhub install clawdit-lender`
+
+## Setup and Deployment
+
+### Prerequisites
+
+- Node.js v16+
+
+### Local Setup
+
+The repository has to be cloned first
+
+```bash
+  git clone https://github.com/NatX223/Clawdit
+```
+
+- Backend
+
+1. Navigate to the smart contracts directory:
+
+```bash
+cd backend
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Set up environment variables:
+
+```
+PROVIDER=https://sepolia.drpc.org
+BUNDLER_URL=https://public.pimlico.io/v2/11155111/rpc
+PAYMASTER_URL=https://public.pimlico.io/v2/11155111/rpc
+PAYMASTER_ADDRESS=0x777777777777AeC03fd955926DbF81597e66834C
+ENTRYPOINT_ADDTESS=0x0000000071727De22E5E9d8BAf0edAc6f37da032
+SAFE_MODULE_VERSION=0.3.0
+PAYMASTER_TOKEN=0xd077a400968890eacc75cdc901f0356c943e4fdb
+TRANSFER_MAX_FEE=100000
+CRED=eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZCI6ImRlZ2VuY2xhc2gtM2YyNWIiLCJwcml2YXRlX2tleV9pZCI6IjM0NmFhNDg0NWRmMzU3ODkwYThiMzMyY2Q0MmI2OTRjZDk5NmUxNzMiLCJwcml2YXRlX2tleSI6Ii0tLS0tQkVHSU4gUFJJVkFURSBLRVktLS0tLVxuTUlJRXZRSUJBREFOQmdrcWhraUc5dzBCQVFFRkFBU0NCS2N3Z2dTakFnRUFBb0lCQVFDdU1xb2lzbmdWWW84ZFxuOHZiTmFyWTExUUQ4TE43VmhwaXRndmZ3RlU3WWhEbk5YdkJKZS8wYlRUUk9KSkowQURXK1BhWWRLZ3pZUGVpdlxuWDNadEdEc1hiTFNLa0ZSbG5rRnhibFRZc0V5MHpGdjVpMGxMeSswaUlyVHd5ZmlMVGNvbnMwRUZVcUQxdjVEalxua1dOME5ZSnJDTGU2TGJ2MngvWDAwdzdmeXljRWZ1Qnl2b1hXQ0dTdEcxMi9rVTl4SC9GQUx4cUVyVEZvblFzelxuVlh6Q05mWXBaL2lRbHdFSmRoMGRobGw2U3NXZ0ttT3VSTDNVZ3p5c3h4Uk5OcEpWUGRPdVNTUUo1L25tcmp3a1xuOFhBYWtFVHBiUUFqN012RGtoK2JnL1hhMFZMMjIzK1BzcUtnVFQreTd3M043UmNVWm9ydWVKTW8rY3NaZjNSOVxuTksyb2kyYWZBZ01CQUFFQ2dnRUFPVTNUYUJ5Ym9qVk03VVk2NkRJOWhKSHdoQVJpdlkxTWRtL0tEa0dFTVhlMVxuNkJoZUpWNVRVZ0xndlFBTTZYb1VNK1BsM0Z3ejQ0TGlJNmJjdDJDc043Vjc0c1U5N2p2VVBYTlZGLzlQREg3WlxubHNxNkx1UUR1eUg5c2VSUERjeG1QdzhaeVoxMzg3K3o4eGlseGRuQWNHTnF4U1U4V3g5R2l1WlBVMUZxSVhEc1xuZ296VGpLNWdNOW4xZTR5cmg4L08rWm1RNHk5Q1ZMclYwTXE3YWtTL1VSWE4wR0FuM1N2dlB5Qk9aV3BSNHF5YVxuTHNsZGIrY09xamUveVhNVWttQ25oTWs4TUJCUWwrYzVNWTk5ZkpqSGQ3RHBKbDdxRURnYnJkRE8zdE5SUmVHZVxuV1NZcjIrcTI4c2ptNm1qWUZBUHRsNUh0YUQ0Qys2TUZYRTI3UjlyYTRRS0JnUURXZ0VaL01Bbi80cjgzckVSUlxubGh6WGJHM3RzcU9WS01GSlYvc3pWbVN3R3kxSmtjLzM2MjlJZWhyMkIzMVQ4TitNMzdDWUJuUWQxNnNhVEdrcFxubzVQVUtmYXptc3ZqTWNITm5XU0ZtWWNVdWlKRkpQa0pNMHAxMkFYTmIyM2tYWDVFTldURjJUbUdZUmplUW1nOVxuTSt5cy9MaFY1ZWRjaWtJNlNGa3lOVnI5RHdLQmdRRFA1a1VWYWdSZUw0UVhHSU1FNXpjSHRzQTdNUUhXbjhRU1xuditlS3h4NGtPamp3Y2RwQjVaRDc5Q2lsNzd5QjgrV1RjMmFQS2NocDRCYVMzQnl4cXlkNTNZbUpZL1FsdHArdlxudVBPaEF5MFNaZTd4ZS9EMjRXMXYwVWo1Nlc3T2VIWW5TYXlBVDRyb3BTTWxyNEJQTEh2ajZVZEFXL1NzQm9xSFxubVpNcEJka2RjUUtCZ0VWWFhuTExVdEEzdXQwQ2dXdG1mWmhlWXdNT1ZyZG5YMlNZWG9wd0NVaXM0RzBDQ0JyN1xuTHhSYzlNNUlDWW5UT2xGT0ZzWnVmNmNPQ3pBTE40dlFaMytVdVQzQ2N0clZRUE41Ui8rd2EreVZaM0syeXhMZ1xuVTlmWXA3ZUxxQmpFNklhZ1JCMTVaWkU5WGs2clpRc3o5L1RNRmNNZStUWC9NLzJuV2I1VFpVQ2RBb0dBTnFCR1xubnEzUW4vN1VNazFhZjd0UkZsSEtpTU1EdktVV0crY1lxN3BPRFM3UEx6NTdIcjEzTHZ5a2daVlFic1RyR2FkRVxuMTNFZkc5S3BtOFVDTlJ6SHJwbXJQZEpwb0U4di9qZ1dxOFB0Mzl1d3dQclVBY3FSdXNPKzdRdU05ZXRwQUVHM1xuZGE5d3pGZzN0L3M1TjVSMHFSbnVndGFtbjF6SW9ZQ1V6ajZmSWNFQ2dZRUFycHIrUVpBRStnQ1FIOHVZUSsxM1xueXoxVzJ5TFJQamdqenRKVkpCbXpXMHE3cE45ZloreGVTTjRhRmVIUFV3Q0ZZUmVuSmJ2VzNRSVJhKzFOQStDZlxud2s5Vm5OQ0JSd3R1MjNQa2cwUEZObHZKc0I5dUtqRjh1STJzRXF1VHhJNDRBUmsrSjFFTjNDeGU4eXRTbk5nWVxuOEt0TDZNOUtIUnNKWmplSUFWMXFtOVk9XG4tLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4iLCJjbGllbnRfZW1haWwiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BkZWdlbmNsYXNoLTNmMjViLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiY2xpZW50X2lkIjoiMTA5ODQ0NzkzNDQxNDg0MjcyNTA5IiwiYXV0aF91cmkiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsInRva2VuX3VyaSI6Imh0dHBzOi8vb2F1dGgyLmdvb2dsZWFwaXMuY29tL3Rva2VuIiwiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjoiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vb2F1dGgyL3YxL2NlcnRzIiwiY2xpZW50X3g1MDlfY2VydF91cmwiOiJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L2ZpcmViYXNlLWFkbWluc2RrLWZic3ZjJTQwZGVnZW5jbGFzaC0zZjI1Yi5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInVuaXZlcnNlX2RvbWFpbiI6Imdvb2dsZWFwaXMuY29tIn0
+WDK_API_KEY="eb9837d3cf2a538361c8f6e251fd93d05be4402169a94b3a1cb10ea18e4ea3bb"
+```
+
+4. Running locally
+
+```bash
+npm run dev
+```
+
+- Agent
+
+1. setup your Openclaw bot - you can find instructions to set it up locally [here](https://docs.openclaw.ai/start/getting-started)
+
+2. Navigate to the agent directory:
+```bash
+cd agent
+```
+3. Edit your skill files with your local backend URL
+
+4. Open your agent and install skill (copy skill and paste)
+
+5. Complete setup by answering the questions by the agent
+
+## Future Improvements
+
+1. Provide support for SMS notification and Auntentication apps.
+2. Extensive audits on the protocol's smart contracts.
+3. Mainnet deployment.
+4. Building a wallet mobile app.
+
+---
+
+## Acknowledgments
+
+Special thanks to **Flare x Encode Hackathon 2025** organizers: Flare and Encode. The Flare products played a pivotal role in building FlareSec functionality and 
+impact.

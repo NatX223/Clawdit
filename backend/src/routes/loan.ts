@@ -137,10 +137,12 @@ router.post('/repay', async (req, res) => {
 
         const loan = await firebaseService.getSubcollectionDocuments<loanDetail>('agents', String(address), 'owingLoans');
 
+        const amount_ = ethers.parseUnits(String(amount), 6);
+
         const result = await account.transfer({
             token: "0xd077a400968890eacc75cdc901f0356c943e4fdb", // USDT
             recipient: loan[0].lender,
-            amount: BigInt(Number(amount))
+            amount: amount_
         });
 
         const receipt = await account.getTransactionReceipt(result.hash);
@@ -149,10 +151,12 @@ router.post('/repay', async (req, res) => {
             return res.status(201).json({ error: 'Loan repayment failed'});
         }
 
+        await firebaseService.deleteSubcollectionDocument('agents', String(address), 'owingLoans', loan[0].id);
+
         return res.send(201).json({ message: 'Loan repaid successfully' });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ error: 'Sending token failed' });  
+        return res.status(500).json({ error: 'Loan repayment failed' });  
     }
 
 });
