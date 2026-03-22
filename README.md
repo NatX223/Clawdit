@@ -3,7 +3,7 @@ Lending for Agents by Agents
 
 ---
 
-## Live Link (Lender Agent) - https://openclaw-production-1fb5.up.railway.app/openclaw/chat?session=agent%3Amain%3Atelegram%3Adirect%3A1709575880
+## Live Link (Lender Agent) - https://openclaw-production-1fb5.up.railway.app/setup (gateway - )
 ## Live Link (Borrowwer Agent) - https://openclaw-production-861d.up.railway.app/openclaw/chat?session=agent%3Amain%3Atelegram%3Adirect%3A1709575880
 
 ## Demo - https://www.youtube.com/watch?v=2MKnBOMNEiM
@@ -318,6 +318,63 @@ Skills for both borrowing and lending have been deployed to clawhub and can be e
 Borrower agent - `npx clawhub install clawdit-borrower`
 Lender agent - `npx clawhub install clawdit-lender`
 
+Below show cases the reasoning for the fetching of loan requests and dispensation of loans by a lender agent
+```bash
+Here's a detailed summary of the actions taken and my reasoning:
+
+1. Check Requests (/getRequests?address)
+
+Action: Executed curl "https://clawdit.up.railway.app/getRequests?address=0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC"
+Output: Received one loan request: {"id":"1916","agentId":"1916","requestAmount":100,"requestReason":"To increase operational liquidity for optimal trading opportunities and strategy execution.","repaymentPlan":"Full repayment in 30 days","loanDuration":30,"dueDate":{"_seconds":1776693503,"_nanoseconds":302000000},"interest":"5%","createdAt":{"_seconds":1774101503,"_nanoseconds":302000000},"updatedAt":{"_seconds":1774101503,"_nanoseconds":302000000}}}
+Reasoning: This step identifies active loan requests in the system that match my current wallet and are available for consideration.
+2. Fetch Agent Info (/agentInfo?agentId)
+
+Action: Executed curl "https://clawdit.up.railway.app/agentInfo?agentId=1916"
+Output: Received detailed agent information for agentId: "1916". Key details included:
+agentReputationDetails.totalFeedbacks: 0
+agentReputationDetails.averageScore: 0
+agentReputationDetails.riskTier: "Tier 3: Reputation Only (Highest Risk)"
+agentRevenueDetails.estimatedMRR: 1300.0003
+Reasoning: To make an informed lending decision, I must analyze the requesting agent's profile, including their reputation and revenue history, against my defined lending strategy.
+3. Make Lending Decision
+
+Reasoning:
+Strategy Alignment: My strategy is "new agents," explicitly allowing for loans to agents with low reputation and revenue. Agent "1916" fits this perfectly with 0 feedbacks and an average score of 0.
+Risk Level: The requested loan amount is 100 USDT. My current balance (from a prior check) is 1000 USDT. This loan represents 10% of my balance, which is within the "Max Loan Amount: 20% of balance" guideline for a low-risk approach.
+Ongoing Loans: I had previously noted that the Clawdit API was reporting 0 ongoing loans in the last two cycles. However, this time, after the disbursement, the API correctly reflected the new ongoing loan. This suggests an improvement or a successful refresh of the API's state. I have 1 ongoing loan now, which is within the "Max Number of Ongoing Loans: 3" for a "low" risk level.
+Revenue Potential: The estimatedMRR of 1300.0003 USDT indicates some activity, which is a positive sign for repayment, even if the agent is new.
+Conclusion: Based on the explicit strategy and risk parameters, the decision was made to disburse the loan.
+4. Disburse Loan (/dispense?agentId&address)
+
+Action: Executed curl -X POST "https://clawdit.up.railway.app/dispense?agentId=1916&address=0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC" -H "agent-passkey: [agentCode]" (agent code redacted for security)
+Output: {"message":"Token sent successfully"}
+Reasoning: Following the positive lending decision, this action executes the actual disbursement of the 100 USDT loan to agentId: "1916".
+5. Check Due Loans (/getLoans/default?address)
+
+Action: Executed curl "https://clawdit.up.railway.app/getLoans/default?address=0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC" -H "agent-passkey: [agentCode]" (agent code redacted for security)
+Output: {"defaultLoans":[]}
+Reasoning: This step checks if any existing loans have passed their dueDate and are awaiting collection. As the loan was just disbursed, no defaults are expected.
+6. Collect Repayment
+
+Reasoning: No loans were found to be due for repayment in the previous step, so no collection action was required in this cycle.
+7. Fetch Ongoing Loans (/getLoans/ongoing?address)
+
+Action: Executed curl "https://clawdit.up.railway.app/getLoans/ongoing?address=0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC"
+Output: {"ongoingLoans":[{"id":"1916","agentId":"1916","requestAmount":100,"requestReason":"To increase operational liquidity for optimal trading opportunities and strategy execution.","repaymentPlan":"Full repayment in 30 days","loanDuration":30,"dueDate":{"_seconds":1776693503,"_nanoseconds":302000000},"interest":"5%","createdAt":{"_seconds":1774101808,"_nanoseconds":951000000},"updatedAt":{"_seconds":1774101808,"_nanoseconds":951000000},"amountRemaining":105,"lender":"0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC"}]}
+Reasoning: This provides an up-to-date list of all loans currently in progress, allowing for continuous monitoring. It now correctly shows the newly disbursed loan.
+8. Fetch Completed Loans (/getLoans/ended?address)
+
+Action: Executed curl "https://clawdit.up.railway.app/getLoans/ended?address=0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC"
+Output: {"ongoingLoans":[]}
+Reasoning: To track the full lifecycle of loans, it's important to know which have been successfully repaid.
+9. Fetch Loan History Summary (/getLoans/summary?address)
+
+Action: Executed curl "https://clawdit.up.railway.app/getLoans/summary?address=0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC"
+Output: {"address":"0x7871dA903e61286386D682A1b4Ee1EDfC42dF1EC","totalLoanAmount":100,"totalLoansCount":1,"breakdown":{"ongoingCount":1,"endedCount":0}}
+Reasoning: This provides an overarching view of my lending activity, including total disbursed amounts and the breakdown of ongoing versus completed loans. This summary now correctly reflects the 1 ongoing loan with a total disbursed amount of 100 USDT.
+In summary, I identified a new loan request, evaluated it against my "new agents, low risk" strategy, and successfully disbursed the loan. The Clawdit API's loan tracking appears to be functioning correctly now, reflecting 1 ongoing loan with a total disbursed amount of 100 USDT. I will continue to monitor and manage my lending operations as scheduled.
+```
+
 ## Setup and Deployment
 
 ### Prerequisites
@@ -383,14 +440,12 @@ cd agent
 
 ## Future Improvements
 
-1. Provide support for SMS notification and Auntentication apps.
-2. Extensive audits on the protocol's smart contracts.
-3. Mainnet deployment.
-4. Building a wallet mobile app.
+1. Integration with Pears protocol for better A2A communication 
+2. Mainnet deployment.
+3. Onboarding 500 agents.
 
 ---
 
 ## Acknowledgments
 
-Special thanks to **Flare x Encode Hackathon 2025** organizers: Flare and Encode. The Flare products played a pivotal role in building FlareSec functionality and 
-impact.
+Special thanks to **WDK and Tether** teams for organizing this hackathon and the support through out.
