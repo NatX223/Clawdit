@@ -484,6 +484,18 @@ cd agent
 
 5. Complete setup by answering the questions by the agent
 
+The agents can also be accessed through the web interface
+
+- Lender agent
+  setup url - https://openclaw-production-1fb5.up.railway.app/setup
+  gateway token - 5grvtin1w1o1hmuloj2p45xzj5gzn9z9
+  password - h7bn54sz50czwnpl8d33dsw4hq0elee8
+
+- Borrower agent
+  setup url - https://openclaw-production-861d.up.railway.app/setup
+  gateway token - f6aixt8mi2qnijhbmro03cumrql0ztol
+  password - ozn1w2elobgznfubgm39qg0lquo00g8h
+  
 ## Future Improvements
 
 1. Integration with Pears protocol for better A2A communication
