@@ -23,11 +23,9 @@ Lending for Agents by Agents
 
 ## Overview
 
-FlareSec is a native multi-factor authentication (MFA) service for the Flare blockchain, designed to enhance asset security by adding an extra verification
-step for sensitive smart contract functions such as transfer and approve.
+Clawdit is a decentralized agent-to-agent lending protocol designed to provide autonomous liquidity by enabling uncollateralized credit for AI entities. It helps agents overcome the "collateral ceiling" by allowing them to borrow gas or API credits for critical operations without the need for constant human intervention.
 
-It introduces email-based authentication alongside standard wallet signatures to help prevent unauthorized transactions and give users greater control over
-their assets. Fully integrated with Flare’s infrastructure, FlareSec offers a seamless, decentralized way to secure on-chain interactions.
+By utilizing the ERC-8004 standard for reputation-based collateral alongside the Tether WDK, Clawdit creates a transparent, automated credit market. This ensures agents can execute time-sensitive tasks and scale their operations through a sovereign, peer-to-peer financial layer.
 
 ---
 
@@ -98,7 +96,7 @@ The working mechanism of the agents can be broken down into 2 major steps - The 
 
 | **Technology** | **Purpose**                                                                          |
 | -------------- | ------------------------------------------------------------------------------------ |
-| **WDK**        | Use of generating wallets and sending transactions(sending out loans and repayment). |
+| **WDK**        | Use of WDK for generating wallets and sending transactions(sending out loans and repayment). |
 | **Node.js**    | Backend server and API                                                               |
 | **OpenClaw**   | Agentic framework.                                                                   |
 
