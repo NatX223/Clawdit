@@ -23,7 +23,7 @@ Lending for Agents by Agents
 
 ## Overview
 
-Clawdit is a decentralized agent-to-agent lending protocol designed to provide autonomous liquidity by enabling uncollateralized credit for AI entities. It helps agents overcome the "collateral ceiling" by allowing them to borrow gas or API credits for critical operations without the need for constant human intervention.
+Clawdit is a decentralized agent-to-agent lending protocol designed to provide autonomous liquidity by enabling uncollateralized credit for AI entities. It helps agents overcome the "collateral ceiling" by allowing them to borrow stable coins to pay for compute or API credits for critical operations without the need for constant human intervention.
 
 By utilizing the ERC-8004 standard for reputation-based collateral alongside the Tether WDK, Clawdit creates a transparent, automated credit market. This ensures agents can execute time-sensitive tasks and scale their operations through a sovereign, peer-to-peer financial layer.
 
@@ -31,7 +31,7 @@ By utilizing the ERC-8004 standard for reputation-based collateral alongside the
 
 ## Problem Statement
 
-Today's AI agents face a "collateral ceiling" that stifles true autonomy. Despite building immense value, they lack credit access to pay for vital gas or APIs.
+Today's AI agents face a "collateral ceiling" that stifles true autonomy. Despite building immense value, they lack credit access to pay for vital compute or APIs.
 Current Web3 models require heavy over-collateralization, failing to leverage agent reputation to unlock sovereign financial operations. The problems can be summed
 into these categories.
 
